@@ -38,7 +38,27 @@ def _build_tree_from_raw() -> dict:
                 tree[lang][cat1_code]["children"][code] = {
                     "code": code,
                     "name": name,
+                    "children": {},
                 }
+
+    # depth3 로드
+    for cat1_code in tree["kr"]:
+        for cat2_code in tree["kr"][cat1_code]["children"]:
+            for lang in ("kr", "en"):
+                try:
+                    depth3 = load_raw("category_code", lang, f"depth3_{cat2_code}")
+                except FileNotFoundError:
+                    continue
+                cat2_node = tree[lang].get(cat1_code, {}).get("children", {}).get(cat2_code)
+                if not cat2_node:
+                    continue
+                for item in depth3:
+                    code = item.get("lclsSystmCode", item.get("code", ""))
+                    name = item.get("lclsSystmNm", item.get("name", ""))
+                    cat2_node["children"][code] = {
+                        "code": code,
+                        "name": name,
+                    }
 
     return tree
 
@@ -63,7 +83,21 @@ def _build_tree_from_data(cat_data: dict) -> dict:
                 tree[lang][cat1_code]["children"][code] = {
                     "code": code,
                     "name": name,
+                    "children": {},
                 }
+
+        for cat2_code, items in data.get("depth3", {}).items():
+            # cat2_code가 속하는 cat1을 찾는다
+            for cat1_code, cat1_node in tree[lang].items():
+                if cat2_code in cat1_node["children"]:
+                    for item in items:
+                        code = item.get("lclsSystmCode", item.get("code", ""))
+                        name = item.get("lclsSystmNm", item.get("name", ""))
+                        cat1_node["children"][cat2_code]["children"][code] = {
+                            "code": code,
+                            "name": name,
+                        }
+                    break
 
     return tree
 

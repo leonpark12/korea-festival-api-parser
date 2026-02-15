@@ -23,6 +23,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="변환만 실행 (raw 데이터 필요)",
     )
+    parser.add_argument(
+        "--save-mongodb",
+        action="store_true",
+        help="output 파일 기반으로 MongoDB 저장만 실행",
+    )
     return parser.parse_args()
 
 
@@ -88,6 +93,65 @@ def run_transform_pois() -> None:
     for p in paths:
         print(f"[Transform] 저장 완료: {p}")
 
+    # MongoDB 저장
+    _save_pois_to_mongodb(data)
+
+
+def _save_pois_to_mongodb(data: dict | None = None) -> None:
+    """변환된 POI 데이터를 MongoDB에 저장한다.
+
+    data가 None이면 output 파일에서 로드한다.
+    """
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    if not os.environ.get("MONGODB_URI"):
+        print("[MongoDB] MONGODB_URI 미설정, MongoDB 저장 건너뜀")
+        return
+
+    if data is None:
+        data = _load_pois_from_output()
+        if not data:
+            return
+
+    from src.storage.mongodb import save_pois_to_mongodb
+
+    print("[MongoDB] pois 저장 시작...")
+    stats = save_pois_to_mongodb(data)
+    total = sum(stats.values())
+    print(f"[MongoDB] 저장 완료: 총 {total}건 ({stats})")
+
+
+def _load_pois_from_output() -> dict | None:
+    """output 디렉토리에서 pois/geojson 파일을 로드한다."""
+    import json
+    from pathlib import Path
+
+    output_dir = Path(__file__).resolve().parent / "output"
+    data: dict[str, dict] = {}
+
+    for lang in ("kr", "en"):
+        pois_path = output_dir / f"pois_{lang}.json"
+        geo_path = output_dir / f"pois_geo_{lang}.json"
+
+        if not pois_path.exists() or not geo_path.exists():
+            print(f"[MongoDB] {pois_path} 또는 {geo_path} 파일 없음, 건너뜀")
+            continue
+
+        data[lang] = {
+            "pois": json.loads(pois_path.read_text(encoding="utf-8")),
+            "geojson": json.loads(geo_path.read_text(encoding="utf-8")),
+        }
+
+    if not data:
+        print("[MongoDB] 저장할 output 파일이 없습니다.")
+        return None
+
+    return data
+
 
 async def run_step2() -> None:
     """Phase 2: 관광정보 수신 + 변환"""
@@ -97,6 +161,11 @@ async def run_step2() -> None:
 
 async def main() -> None:
     args = parse_args()
+
+    if args.save_mongodb:
+        print("=== MongoDB 저장만 실행 ===")
+        _save_pois_to_mongodb()
+        return
 
     if args.transform_only:
         print("=== 변환만 실행 (raw 데이터 사용) ===")

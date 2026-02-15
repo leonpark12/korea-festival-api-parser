@@ -7,7 +7,7 @@ load_dotenv()
 API_KEY = os.environ.get("DATA_GO_KR_API_KEY", "")
 
 COMMON_PARAMS = {
-    "numOfRows": 100,
+    "numOfRows": 200,
     "pageNo": 1,
     "MobileOS": "ETC",
     "MobileApp": "AppTest",

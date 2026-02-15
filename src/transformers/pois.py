@@ -94,6 +94,12 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
             if name:
                 tags.append(name)
 
+    # source: 원본 데이터 추적용
+    source = {
+        "area": item.get("lDongRegnCd", ""),
+        "lcls": [v for v in [item.get("lclsSystm1", ""), item.get("lclsSystm2", ""), item.get("lclsSystm3", "")] if v],
+    }
+
     return {
         "id": content_id,
         "slug": content_id,
@@ -108,6 +114,7 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
         "website": "",
         "tags": tags,
         "updatedAt": _format_date(item.get("modifiedtime", "")),
+        "source": source,
     }
 
 
