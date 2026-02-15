@@ -1,0 +1,8 @@
+  ## 요청 사항
+  - 지역기반 관광정보 국문 영문 api 조회후 저장
+  - 필수 parameter (enabled:true)는 그대로 사용
+  - optional parameter(enabled:false) 중 contentTypeId 는 output/content-types.json 파일의 code값을 참고 하되 kr과 en으로 나뉘어져 있고 kr이 없는건 kr에서 사용아함, en도 마찬가지.
+  - optional parameter(enabled:false) 중 lDongRegnCd 1개만 사용함 lDongRegnCd 에는 regions.json 파일의 code값을 사용함
+  - 테스트 중이므로 1page 30개의 파일만 추출 함
+  - 결론 kr, en 각각 api를 호출 하되 contentTypeId, contentTypeId 두개를 조합하여 반복적으로 실행해야 함
+  - output에는 en, kr 두개의 파일로 각각 저장 해야함

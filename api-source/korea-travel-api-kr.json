@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "format": "httpie",
+    "version": "1.0.0",
+    "contentType": "collection",
+    "schema": "https://schema.httpie.io/1.0.0.json",
+    "docs": "https://httpie.io/r/help/export-from-httpie",
+    "source": "HTTPie Desktop 2025.2.0"
+  },
+  "entry": {
+    "name": "한국관광공사 한글",
+    "icon": {
+      "color": "gray",
+      "name": "default"
+    },
+    "auth": {
+      "type": "none"
+    },
+    "requests": [
+      {
+        "name": "지역기반 관광정보 조회",
+        "url": "https://apis.data.go.kr/B551011/KorService2/areaBasedList2",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [
+          {
+            "name": "numOfRows",
+            "value": "30",
+            "enabled": true
+          },
+          {
+            "name": "pageNo",
+            "value": "1",
+            "enabled": true
+          },
+          {
+            "name": "MobileOS",
+            "value": "ETC",
+            "enabled": true
+          },
+          {
+            "name": "MobileApp",
+            "value": "AppTest",
+            "enabled": true
+          },
+          {
+            "name": "_type",
+            "value": "json",
+            "enabled": true
+          },
+          {
+            "name": "serviceKey",
+            "value": "{{DATA_GO_KR_API_KEY}}",
+            "enabled": true
+          },
+          {
+            "name": "arrange",
+            "value": "A",
+            "enabled": true
+          },
+          {
+            "name": "contentTypeId",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "lDongRegnCd",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "lDongSignguCd",
+            "value": "570",
+            "enabled": false
+          },
+          {
+            "name": "lclsSystm1",
+            "value": "NA",
+            "enabled": false
+          },
+          {
+            "name": "lclsSystm2",
+            "value": "NA01",
+            "enabled": false
+          },
+          {
+            "name": "lclsSystm3",
+            "value": "NA010100",
+            "enabled": false
+          }
+        ],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "법정동코드조회",
+        "url": "https://apis.data.go.kr/B551011/KorService2/ldongCode2",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [
+          {
+            "name": "numOfRows",
+            "value": "100",
+            "enabled": true
+          },
+          {
+            "name": "pageNo",
+            "value": "1",
+            "enabled": true
+          },
+          {
+            "name": "MobileOS",
+            "value": "ETC",
+            "enabled": true
+          },
+          {
+            "name": "MobileApp",
+            "value": "AppTest",
+            "enabled": true
+          },
+          {
+            "name": "_type",
+            "value": "json",
+            "enabled": true
+          },
+          {
+            "name": "serviceKey",
+            "value": "{{DATA_GO_KR_API_KEY}}",
+            "enabled": true
+          },
+          {
+            "name": "lDongRegnCd",
+            "value": "41",
+            "enabled": false
+          },
+          {
+            "name": "lDongListYn",
+            "value": "N",
+            "enabled": true
+          }
+        ],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "분류체계코드",
+        "url": "https://apis.data.go.kr/B551011/KorService2/lclsSystmCode2",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [
+          {
+            "name": "numOfRows",
+            "value": "100",
+            "enabled": true
+          },
+          {
+            "name": "pageNo",
+            "value": "1",
+            "enabled": true
+          },
+          {
+            "name": "MobileOS",
+            "value": "ETC",
+            "enabled": true
+          },
+          {
+            "name": "MobileApp",
+            "value": "AppTest",
+            "enabled": true
+          },
+          {
+            "name": "_type",
+            "value": "json",
+            "enabled": true
+          },
+          {
+            "name": "serviceKey",
+            "value": "{{DATA_GO_KR_API_KEY}}",
+            "enabled": true
+          },
+          {
+            "name": "lclsSystmListYn",
+            "value": "",
+            "enabled": false
+          },
+          {
+            "name": "lclsSystm1",
+            "value": "AC",
+            "enabled": false
+          },
+          {
+            "name": "lclsSystm2",
+            "value": "AC05",
+            "enabled": false
+          },
+          {
+            "name": "lclsSystm3",
+            "value": "",
+            "enabled": false
+          }
+        ],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      }
+    ]
+  }
+}
