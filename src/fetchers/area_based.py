@@ -4,7 +4,7 @@ from pathlib import Path
 
 import httpx
 
-from src.client import create_client, fetch_single, save_raw
+from src.client import create_client, fetch_all_pages, save_raw
 from src.config import ENDPOINTS, REQUEST_DELAY
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent / "output"
@@ -32,15 +32,16 @@ def _get_content_type_ids(lang: str) -> list[str]:
 
 
 def _get_region_codes() -> list[str]:
-    """regions.json에서 지역 코드 목록을 반환한다."""
-    regions = _load_regions()
-    return [r["code"] for r in regions]
+    """API 조회용 법정동 숫자 코드 목록을 반환한다."""
+    from src.transformers.regions import REGION_CODE_MAP
+
+    return list(REGION_CODE_MAP.keys())
 
 
 async def fetch_area_based() -> dict:
     """지역기반 관광정보를 contentTypeId × lDongRegnCd 조합으로 조회하여 저장한다.
 
-    테스트 모드: 1page, 30개씩만 조회.
+    totalCount 기반으로 모든 페이지를 순회하여 전체 데이터를 다운받는다.
     raw: 각 호출 결과를 개별 파일로 저장 (raw/area_based/{lang}/ct{id}_rg{code}.json)
     output: area_based_kr.json, area_based_en.json
 
@@ -65,17 +66,16 @@ async def fetch_area_based() -> dict:
                         f"contentTypeId={ct_id}, lDongRegnCd={region_code}"
                     )
                     await asyncio.sleep(REQUEST_DELAY)
-                    items = await fetch_single(
+                    items = await fetch_all_pages(
                         client,
                         url,
                         {
-                            "numOfRows": 30,
-                            "pageNo": 1,
                             "arrange": "A",
                             "contentTypeId": ct_id,
                             "lDongRegnCd": region_code,
                         },
                     )
+                    print(f"    → {len(items)}건 수신")
                     # raw: 개별 파일로 저장
                     save_raw(items, "area_based", lang, f"ct{ct_id}_rg{region_code}")
                     result[lang].extend(items)

@@ -22,13 +22,24 @@ async def fetch_depth2(
     return items
 
 
+async def fetch_depth3(
+    client: httpx.AsyncClient, lang: str, cat1_code: str, cat2_code: str
+) -> list[dict]:
+    """3-depth 소분류 목록을 조회한다."""
+    url = ENDPOINTS["category_code"][lang]
+    items = await fetch_single(
+        client, url, {"lclsSystm1": cat1_code, "lclsSystm2": cat2_code}
+    )
+    return items
+
+
 async def fetch_category_code() -> dict:
-    """분류체계 코드 전체(kr/en, 2-depth)를 수신하고 raw에 저장한다.
+    """분류체계 코드 전체(kr/en, 3-depth)를 수신하고 raw에 저장한다.
 
     Returns:
         {
-            "kr": {"depth1": [...], "depth2": {code: [...], ...}},
-            "en": {"depth1": [...], "depth2": {code: [...], ...}},
+            "kr": {"depth1": [...], "depth2": {code: [...], ...}, "depth3": {code: [...], ...}},
+            "en": {"depth1": [...], "depth2": {code: [...], ...}, "depth3": {code: [...], ...}},
         }
     """
     result: dict = {}
@@ -40,6 +51,7 @@ async def fetch_category_code() -> dict:
             print(f"  [{lang}] depth1: {len(depth1)} categories")
 
             depth2: dict[str, list[dict]] = {}
+            depth3: dict[str, list[dict]] = {}
 
             for cat1 in depth1:
                 cat1_code = cat1.get("lclsSystmCode", cat1.get("code", ""))
@@ -51,6 +63,25 @@ async def fetch_category_code() -> dict:
                 save_raw(children, "category_code", lang, f"depth2_{cat1_code}")
                 print(f"  [{lang}] depth2 ({cat1_code}): {len(children)} sub-categories")
 
-            result[lang] = {"depth1": depth1, "depth2": depth2}
+                # depth3: 각 depth2 항목의 소분류 조회
+                for cat2 in children:
+                    cat2_code = cat2.get("lclsSystmCode", cat2.get("code", ""))
+                    if not cat2_code:
+                        continue
+                    await asyncio.sleep(REQUEST_DELAY)
+                    grandchildren = await fetch_depth3(client, lang, cat1_code, cat2_code)
+                    if grandchildren:
+                        depth3[cat2_code] = grandchildren
+                        save_raw(
+                            grandchildren,
+                            "category_code",
+                            lang,
+                            f"depth3_{cat2_code}",
+                        )
+                        print(
+                            f"  [{lang}] depth3 ({cat2_code}): {len(grandchildren)} sub-categories"
+                        )
+
+            result[lang] = {"depth1": depth1, "depth2": depth2, "depth3": depth3}
 
     return result
