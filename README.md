@@ -61,7 +61,7 @@ uv run python main.py --fetch area_based      # 지역기반 관광정보만 수
 
 ### 변환만 실행 (raw 데이터 필요)
 
-이미 수신된 `raw/` 데이터를 기반으로 변환만 재실행합니다.
+이미 수신된 `raw/` 데이터를 기반으로 변환만 재실행합니다. MongoDB 저장은 실행하지 않습니다.
 
 ```bash
 uv run python main.py --transform-only
@@ -89,7 +89,7 @@ korea-festival-api-parser/
 │   │   ├── category_code.py        # 관광 분류체계 코드 (3-depth)
 │   │   └── area_based.py           # 지역기반 관광정보 (totalCount 기반 전체 페이지 순회)
 │   ├── transformers/               # 데이터 변환
-│   │   ├── categories.py           # 분류체계 → categories.json
+│   │   ├── categories.py           # 분류체계 → categories.json + categories_db.json
 │   │   ├── regions.py              # 행정구역 → regions.json
 │   │   └── pois.py                 # 관광정보 → pois_{lang}.json + pois_geo_{lang}.json
 │   └── storage/                    # 데이터 저장
@@ -107,7 +107,7 @@ data.go.kr API
       │
       ▼
   Fetchers (수신)
-      │  depth1, depth2를 언어별(kr/en) 수신
+      │  depth1, depth2, depth3를 언어별(kr/en) 수신
       │  area_based: totalCount 기반 전체 페이지 순회
       │  raw/{category}/{lang}/*.json 저장
       ▼
@@ -129,7 +129,7 @@ data.go.kr API
 
 ### `output/categories.json`
 
-관광 분류체계를 2-depth 배열로 출력합니다. 대분류 코드는 API depth1 수신 데이터에 의해 결정됩니다.
+관광 분류체계를 3-depth 배열로 출력합니다. 대분류 코드는 API depth1 수신 데이터에 의해 결정됩니다.
 
 ```json
 [
@@ -137,8 +137,13 @@ data.go.kr API
     "code": "AC",
     "name": { "ko": "숙박", "en": "Accommodation" },
     "list": [
-      { "code": "AC01", "name": { "ko": "호텔", "en": "Hotels" } },
-      { "code": "AC02", "name": { "ko": "콘도미니엄", "en": "Condominiums" } }
+      {
+        "code": "AC01",
+        "name": { "ko": "호텔", "en": "Hotels" },
+        "list": [
+          { "code": "AC010100", "name": { "ko": "관광호텔", "en": "Tourist Hotels" } }
+        ]
+      }
     ]
   }
 ]
@@ -156,6 +161,19 @@ data.go.kr API
 | NA | 자연관광 | Nature Tourism |
 | SH | 쇼핑 | Shopping |
 | VE | 문화관광 | Cultural Tourism |
+
+### `output/categories_db.json`
+
+분류체계를 MongoDB 저장용 flat 문서 리스트로 출력합니다. 각 depth의 카테고리가 `parent` 참조로 연결됩니다.
+
+```json
+[
+  { "_id": "category", "name": { "en": "Category", "kr": "카테고리" }, "parent": null },
+  { "_id": "AC", "name": { "en": "Accommodation", "kr": "숙박" }, "parent": "category" },
+  { "_id": "AC01", "name": { "en": "Hotels", "kr": "호텔" }, "parent": "AC" },
+  { "_id": "AC010100", "name": { "en": "Tourist Hotels", "kr": "관광호텔" }, "parent": "AC01" }
+]
+```
 
 ### `output/regions.json`
 
@@ -186,7 +204,7 @@ data.go.kr API
     "images": ["http://...image2_1.jpg"],
     "contact": "",
     "website": "",
-    "tags": ["역사관광", "종교성지"],
+    "tags": ["역사관광", "종교성지", "사찰"],
     "updatedAt": "2025-03-12"
   }
 ]

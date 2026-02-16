@@ -26,6 +26,10 @@ REGION_CODE_MAP = {
     "52": "jeonbuk",
 }
 
+# lclsSystm3 코드 기반 제외 필터 (kr/en 각각 별도 설정 가능)
+EXCLUDE_LCLS3_KR: list[str] = ["SH040300", "FD010100", "AC030300", "AC030400", "AC040100", "AC050100", "AC050200", "AC050300", "AC050400", "AC060100", "EX060100", "EX060200", "EX060300", "EX060400", "EX060500", "EX060600", "EX060700", "EX060800", "EX060900", "EX061000", "FD030100", "FD030200", "FD030300", "FD030400", "FD030500", "FD030600", "FD040100", "FD040200", "FD040300", "FD040400", "FD040500", "FD050100", "FD050200", "FD050300", "NA010500", "NA020100", "NA020200", "NA020300", "NA020400", "NA020500", "NA020600", "NA020700", "SH050100", "SH050200", "VE010300", "VE010400", "VE010500", "VE010600", "VE010700", "VE010800", "VE010900", "VE030100", "VE030200", "VE030300", "VE030400", "VE030500", "VE060200", "VE080600", "VE090100", "VE090200", "VE090300", "VE090400", "VE090500", "VE090600", "VE100100", "VE100200", "VE110100", "VE110200", "VE110300", "VE110400", "VE110500", "VE110600", "VE120100", "VE120200", "VE120300"]  # 예: ["SH040300", "FD010100"]
+EXCLUDE_LCLS3_EN: list[str] = ["SH040300", "FD010100", "AC030300", "AC030400", "AC040100", "AC050100", "AC050200", "AC050300", "AC050400", "AC060100", "EX060100", "EX060200", "EX060300", "EX060400", "EX060500", "EX060600", "EX060700", "EX060800", "EX060900", "EX061000", "FD030100", "FD030200", "FD030300", "FD030400", "FD030500", "FD030600", "FD040100", "FD040200", "FD040300", "FD040400", "FD040500", "FD050100", "FD050200", "FD050300", "NA010500", "NA020100", "NA020200", "NA020300", "NA020400", "NA020500", "NA020600", "NA020700", "SH050100", "SH050200", "VE010300", "VE010400", "VE010500", "VE010600", "VE010700", "VE010800", "VE010900", "VE030100", "VE030200", "VE030300", "VE030400", "VE030500", "VE060200", "VE080600", "VE090100", "VE090200", "VE090300", "VE090400", "VE090500", "VE090600", "VE100100", "VE100200", "VE110100", "VE110200", "VE110300", "VE110400", "VE110500", "VE110600", "VE120100", "VE120200", "VE120300"]  # 예: ["SH040300", "FD010100"]
+
 
 def _build_category_map() -> dict[str, dict[str, str]]:
     """categories.json을 읽어 {code: {"ko": name, "en": name}} 딕셔너리 생성."""
@@ -37,6 +41,8 @@ def _build_category_map() -> dict[str, dict[str, str]]:
         cat_map[top["code"]] = top["name"]
         for child in top.get("list", []):
             cat_map[child["code"]] = child["name"]
+            for grandchild in child.get("list", []):
+                cat_map[grandchild["code"]] = grandchild["name"]
 
     return cat_map
 
@@ -85,14 +91,16 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
         if img
     ]
 
-    # tags: lclsSystm1, lclsSystm2 코드의 언어별 name
+    # tags: lclsSystm1, lclsSystm2, lclsSystm3 코드의 언어별 name (중복 제거)
     tags = []
-    for key in ("lclsSystm1", "lclsSystm2"):
+    seen: set[str] = set()
+    for key in ("lclsSystm1", "lclsSystm2", "lclsSystm3"):
         code = item.get(key, "")
         if code:
             name = category_map.get(code, {}).get(lang, "")
-            if name:
+            if name and name not in seen:
                 tags.append(name)
+                seen.add(name)
 
     # source: 원본 데이터 추적용
     source = {
@@ -155,20 +163,31 @@ def transform_pois() -> dict[str, dict]:
 
         items = json.loads(data_path.read_text(encoding="utf-8"))
 
-        pois = [_transform_item(item, lang_key, category_map) for item in items]
+        exclude_codes = EXCLUDE_LCLS3_KR if lang == "kr" else EXCLUDE_LCLS3_EN
+        pois = []
+        excluded = []
+        for item in items:
+            transformed = _transform_item(item, lang_key, category_map)
+            if item.get("lclsSystm3", "") in exclude_codes:
+                excluded.append(transformed)
+            else:
+                pois.append(transformed)
 
         geojson = {
             "type": "FeatureCollection",
             "features": [_to_geojson_feature(poi) for poi in pois],
         }
 
-        result[lang] = {"pois": pois, "geojson": geojson}
+        result[lang] = {"pois": pois, "geojson": geojson, "excluded": excluded}
 
     return result
 
 
 def save_pois(data: dict[str, dict]) -> list[Path]:
-    """변환된 데이터를 output/pois_{lang}.json, pois_geo_{lang}.json으로 저장."""
+    """변환된 데이터를 output/pois_{lang}.json, pois_geo_{lang}.json으로 저장.
+
+    제외된 항목은 pois_exclude_{lang}.json으로 별도 저장 (DB 미입력).
+    """
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     saved: list[Path] = []
 
@@ -186,5 +205,14 @@ def save_pois(data: dict[str, dict]) -> list[Path]:
             encoding="utf-8",
         )
         saved.append(geo_path)
+
+        excluded = content.get("excluded", [])
+        if excluded:
+            exclude_path = OUTPUT_DIR / f"pois_exclude_{lang}.json"
+            exclude_path.write_text(
+                json.dumps(excluded, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            saved.append(exclude_path)
 
     return saved

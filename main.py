@@ -59,12 +59,22 @@ def run_transform_regions(ldong_data: dict | None = None) -> None:
 
 
 def run_transform_categories(cat_data: dict | None = None) -> None:
-    from src.transformers.categories import save_categories, transform_categories
+    from src.transformers.categories import (
+        save_categories,
+        save_categories_db,
+        transform_categories,
+        transform_categories_db,
+    )
 
     print("[Transform] categories.json 변환 시작...")
     categories = transform_categories(cat_data)
     path = save_categories(categories)
     print(f"[Transform] categories.json 저장 완료: {path} ({len(categories)} top-level categories)")
+
+    print("[Transform] categories_db.json 변환 시작...")
+    docs = transform_categories_db(cat_data)
+    db_path = save_categories_db(docs)
+    print(f"[Transform] categories_db.json 저장 완료: {db_path} ({len(docs)} documents)")
 
 
 async def run_step1() -> None:
@@ -92,9 +102,6 @@ def run_transform_pois() -> None:
     paths = save_pois(data)
     for p in paths:
         print(f"[Transform] 저장 완료: {p}")
-
-    # MongoDB 저장
-    _save_pois_to_mongodb(data)
 
 
 def _save_pois_to_mongodb(data: dict | None = None) -> None:
@@ -154,9 +161,10 @@ def _load_pois_from_output() -> dict | None:
 
 
 async def run_step2() -> None:
-    """Phase 2: 관광정보 수신 + 변환"""
+    """Phase 2: 관광정보 수신 + 변환 + MongoDB 저장"""
     await run_fetch_area_based()
     run_transform_pois()
+    _save_pois_to_mongodb()
 
 
 async def main() -> None:
