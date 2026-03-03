@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased] — 2026-02-28
+
+### 6. shrimp-rules.md — 프로젝트 규칙 문서 초기화
+
+**파일:** `shrimp-rules.md`
+
+Shrimp Task Manager MCP용 프로젝트 규칙 문서를 생성. 코드베이스 분석 기반으로 다음 항목을 포함:
+- 프로젝트 아키텍처 및 디렉토리 구조
+- 코드 표준 (네이밍, 타입 힌트, 경로 처리, JSON 저장, 주석)
+- 기능 구현 표준 (fetcher/transformer/storage 패턴)
+- 핵심 파일 상호작용 규칙
+- AI 의사결정 표준
+- 금지 사항
+
+---
+
 ## [Unreleased] — 2026-02-16
 
 > 마지막 커밋 `7b2742c` (feat: add full pagination, MongoDB storage, and 3-depth categories) 이후 변경사항
