@@ -47,6 +47,16 @@ def _build_category_map() -> dict[str, dict[str, str]]:
     return cat_map
 
 
+def _safe_float(val: str) -> float:
+    """숫자 문자열을 float로 변환. 'null', 빈값 등은 0.0 반환."""
+    if not val or val == "null":
+        return 0.0
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return 0.0
+
+
 def _format_date(raw: str) -> str:
     """'20250312152659' → '2025-03-12'"""
     if not raw or len(raw) < 8:
@@ -72,8 +82,8 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
     lat_str = item.get("mapy", "")
     lng_str = item.get("mapx", "")
     coordinates = {
-        "lat": float(lat_str) if lat_str else 0.0,
-        "lng": float(lng_str) if lng_str else 0.0,
+        "lat": _safe_float(lat_str),
+        "lng": _safe_float(lng_str),
     }
 
     # address: addr1 + addr2
@@ -104,6 +114,7 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
 
     # source: 원본 데이터 추적용
     source = {
+        "contentTypeId":item.get("contenttypeid", ""),
         "area": item.get("lDongRegnCd", ""),
         "lcls": [v for v in [item.get("lclsSystm1", ""), item.get("lclsSystm2", ""), item.get("lclsSystm3", "")] if v],
     }
