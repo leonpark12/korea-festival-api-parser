@@ -50,6 +50,73 @@ def _bulk_write_batched(collection, ops: list, batch_size: int = BATCH_SIZE) -> 
     return total
 
 
+def update_pois_details_to_mongodb(
+    data: dict[str, list[dict]], db_name: str = "korea_tourism"
+) -> dict[str, int]:
+    """상세 업데이트된 POI를 기존 컬렉션에 부분 업데이트한다.
+
+    기존 pois_kr/pois_en 컬렉션에 $set으로 부분 업데이트만 수행한다.
+    upsert=False — 기존 문서만 업데이트, 신규 생성 안함.
+
+    Args:
+        data: {"kr": [POI 목록], "en": [POI 목록]}
+        db_name: MongoDB 데이터베이스 이름
+
+    Returns:
+        컬렉션별 업데이트 건수 {"pois_kr": N, "pois_en": N}
+    """
+    # 부분 업데이트할 필드 목록
+    update_fields = (
+        "description", "mlevel", "coordinates", "contact",
+        "website", "intro", "info", "detailUpdatedAt",
+    )
+
+    client = _get_client()
+    db = client[db_name]
+    stats: dict[str, int] = {}
+
+    try:
+        for lang in ("kr", "en"):
+            if lang not in data:
+                continue
+
+            pois = data[lang]
+            # detailUpdatedAt이 있는 항목만 업데이트 대상
+            updated_pois = [p for p in pois if p.get("detailUpdatedAt")]
+            if not updated_pois:
+                continue
+
+            col_name = f"pois_{lang}"
+            ops = []
+            for doc in updated_pois:
+                set_fields = {
+                    k: doc[k] for k in update_fields if k in doc
+                }
+                if set_fields:
+                    ops.append(
+                        UpdateOne(
+                            {"id": doc["id"]},
+                            {
+                                "$set": set_fields,
+                                "$unset": {"details": ""},
+                            },
+                            upsert=False,
+                        )
+                    )
+
+            if not ops:
+                continue
+
+            print(f"  [MongoDB] {col_name}: {len(ops)}건 상세 업데이트 시작...")
+            count = _bulk_write_batched(db[col_name], ops)
+            stats[col_name] = count
+            print(f"  [MongoDB] {col_name}: {count}건 업데이트 완료")
+    finally:
+        client.close()
+
+    return stats
+
+
 def save_pois_to_mongodb(data: dict[str, dict], db_name: str = "korea_tourism") -> dict[str, int]:
     """pois, geojson 데이터를 MongoDB에 upsert 저장한다.
 
