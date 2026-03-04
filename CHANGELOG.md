@@ -2,6 +2,89 @@
 
 ## [Unreleased] — 2026-03-04
 
+### 9. POI 상세 업데이트 — 반복정보(detailInfo2) 추가 및 소개정보 데이터 구조 변경
+
+detailInfo2(반복정보) API를 추가하고, 기존 `details` flat dict를 `intro`(배열) + `info`(배열) 구조로 변경.
+
+#### 9-1. `src/config.py` — `detail_info` 엔드포인트 추가
+
+- `ENDPOINTS`에 `detail_info` (kr/en) 추가 — detailInfo2 API
+
+#### 9-2. `src/transformers/pois_detail.py` — 데이터 구조 변경
+
+- `_clean_item(item)` 헬퍼 함수 추출: contentid/contenttypeid 제거 + 빈 값 필터링
+- `merge_detail_to_poi(poi, common, intro_items, info_items)` 시그니처 변경 (4인자)
+- detailIntro2 → `intro` 배열 (기존 `details` flat dict에서 변경)
+- detailInfo2 → `info` 배열 (신규)
+- 기존 `details` 필드는 `pop`으로 제거, 데이터 없는 경우에도 빈 배열 `[]` 설정
+
+#### 9-3. `src/fetchers/detail_update.py` — detailInfo2 호출 추가
+
+- `_fetch_detail_for_poi()` 반환: `(common_item, intro_items, info_items)` 3-tuple
+- detailIntro2: `items[0]` → `items` 전체 배열 반환
+- detailInfo2: 신규 호출 (contentId + contentTypeId), 전체 배열 반환
+- `_filter_pending_pois()` 스킵 판별 강화: `detailUpdatedAt` + `intro` + `info` 모두 존재해야 스킵
+  - 기존 `details`만 있는 POI는 자동 재처리 대상
+
+#### 9-4. `src/storage/mongodb.py` — 필드 마이그레이션
+
+- `update_fields`: `details` → `intro` + `info`
+- `$unset: {"details": ""}` 추가로 기존 `details` 필드 제거
+
+---
+
+### 8. POI 상세 정보 업데이트 기능 추가
+
+`detailCommon2`(공통정보) / `detailIntro2`(소개정보) API를 통해 기존 POI에 상세 데이터를 보강하는 기능.
+
+#### 8-1. `src/config.py` — 엔드포인트 및 상수 추가
+
+- `ENDPOINTS`에 `detail_common`, `detail_intro` (kr/en) 추가
+- `DETAIL_UPDATE_MAX_POIS = 1000` 상수 추가 (각 언어당 일일 API 호출 제한)
+
+#### 8-2. `src/transformers/pois_detail.py` (신규)
+
+- `merge_detail_to_poi(poi, common, intro)`: detailCommon2/detailIntro2 응답을 기존 POI 문서에 병합
+  - `overview` → `description`, `mlevel` (신규), `mapx/mapy` → `coordinates`, `homepage` → `website` (HTML 제거), `tel` → `contact`
+  - `intro` 전체 → `details` (contentid/contenttypeid 제거)
+  - `detailUpdatedAt` 필드 추가 (증분 업데이트 스킵 판별용)
+
+#### 8-3. `src/fetchers/detail_update.py` (신규)
+
+- `fetch_detail_update(region, limit)`: 핵심 수신 로직
+  - `pois_{lang}.json`에서 대상 로드 → `pois_details_{lang}.json` 기반 스킵 판별
+  - 언어별 독립 처리, 50건마다 중간 저장(checkpoint)
+  - 시작 시 진행 상황 리포트 출력
+  - 기존 `fetch_single()`, `save_raw()`, `create_client()` 재활용
+- detailCommon2 호출 시 공통 파라미터 + `contentId`만 전달 (API 스펙 준수)
+  - `defaultYN`/`overviewYN`/`mapinfoYN` 등 비공식 파라미터 사용 시 `INVALID_REQUEST_PARAMETER_ERROR` 발생
+
+#### 8-4. `src/storage/mongodb.py` — `update_pois_details_to_mongodb()` 추가
+
+- 기존 `pois_kr`/`pois_en` 컬렉션에 `$set`으로 부분 업데이트
+- 대상 필드: description, mlevel, coordinates, contact, website, details, detailUpdatedAt
+- `upsert=False` — 기존 문서만 업데이트
+
+#### 8-5. `main.py` — CLI 옵션 확장
+
+새 옵션:
+- `--step 3`: POI 상세 업데이트 (수신 + MongoDB 저장)
+- `--fetch detail_update`: 수신만 실행 (MongoDB 저장 없이)
+- `--region <slug>`: 지역 필터 (예: `incheon`, `seoul`)
+- `--limit <N>`: 각 언어당 최대 처리 건수 (기본: 1000)
+- `--save-mongodb-details`: output 파일 기반 MongoDB 상세 업데이트만 실행
+
+#### 출력 파일
+
+| 파일 | 설명 |
+|------|------|
+| `output/pois_details_kr.json` | 상세 업데이트된 POI (한국어, 증분 누적) |
+| `output/pois_details_en.json` | 상세 업데이트된 POI (영어, 증분 누적) |
+| `raw/detail_common/{lang}/{contentId}.json` | detailCommon2 원본 응답 |
+| `raw/detail_intro/{lang}/{contentId}.json` | detailIntro2 원본 응답 |
+
+---
+
 ### 7. pois.py — 좌표 변환 에러 수정
 
 **파일:** `src/transformers/pois.py`

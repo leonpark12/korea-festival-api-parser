@@ -49,6 +49,15 @@ uv run python main.py --step 1
 
 # Step 2: 관광정보 수신 + 변환 + MongoDB 저장
 uv run python main.py --step 2
+
+# Step 3: POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2)
+uv run python main.py --step 3
+
+# Step 3: 특정 지역만 (예: 인천)
+uv run python main.py --step 3 --region incheon
+
+# Step 3: 제한된 건수만 테스트
+uv run python main.py --step 3 --region incheon --limit 100
 ```
 
 ### 개별 fetcher 실행
@@ -57,6 +66,8 @@ uv run python main.py --step 2
 uv run python main.py --fetch ldong_code      # 행정구역 코드만 수신
 uv run python main.py --fetch category_code   # 분류체계 코드만 수신
 uv run python main.py --fetch area_based      # 지역기반 관광정보만 수신
+uv run python main.py --fetch detail_update   # POI 상세 업데이트만 수신 (MongoDB 저장 없이)
+uv run python main.py --fetch detail_update --region incheon  # 지역 필터
 ```
 
 ### 변환만 실행 (raw 데이터 필요)
@@ -72,7 +83,8 @@ uv run python main.py --transform-only
 이미 변환된 `output/` 파일을 기반으로 MongoDB 저장만 재실행합니다.
 
 ```bash
-uv run python main.py --save-mongodb
+uv run python main.py --save-mongodb           # POI 전체 저장
+uv run python main.py --save-mongodb-details   # POI 상세 업데이트만 저장
 ```
 
 ## 프로젝트 구조
@@ -87,13 +99,15 @@ korea-festival-api-parser/
 │   ├── fetchers/                   # API 데이터 수신
 │   │   ├── ldong_code.py           # 행정구역(법정동) 코드
 │   │   ├── category_code.py        # 관광 분류체계 코드 (3-depth)
-│   │   └── area_based.py           # 지역기반 관광정보 (totalCount 기반 전체 페이지 순회)
+│   │   ├── area_based.py           # 지역기반 관광정보 (totalCount 기반 전체 페이지 순회)
+│   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2)
 │   ├── transformers/               # 데이터 변환
 │   │   ├── categories.py           # 분류체계 → categories.json + categories_db.json
 │   │   ├── regions.py              # 행정구역 → regions.json
-│   │   └── pois.py                 # 관광정보 → pois_{lang}.json + pois_geo_{lang}.json
+│   │   ├── pois.py                 # 관광정보 → pois_{lang}.json + pois_geo_{lang}.json
+│   │   └── pois_detail.py          # 상세정보 병합 (detailCommon2/detailIntro2/detailInfo2 → POI)
 │   └── storage/                    # 데이터 저장
-│       └── mongodb.py              # MongoDB upsert 저장
+│       └── mongodb.py              # MongoDB upsert 저장 + 상세 부분 업데이트
 ├── raw/                            # API 원본 응답 캐시 (git 미추적)
 ├── output/                         # 변환 결과 JSON (git 미추적)
 ├── pyproject.toml
@@ -107,8 +121,9 @@ data.go.kr API
       │
       ▼
   Fetchers (수신)
-      │  depth1, depth2, depth3를 언어별(kr/en) 수신
-      │  area_based: totalCount 기반 전체 페이지 순회
+      │  Step 1: depth1~3 코드를 언어별(kr/en) 수신
+      │  Step 2: areaBasedList2 — totalCount 기반 전체 페이지 순회
+      │  Step 3: detailCommon2 + detailIntro2 + detailInfo2 — POI별 상세 정보 수신
       │  raw/{category}/{lang}/*.json 저장
       ▼
   Transformers (변환)
@@ -116,10 +131,11 @@ data.go.kr API
       │  output/*.json 저장
       ▼
   Output JSON
-      │
+      │  pois_{lang}.json       — 기본 POI 데이터
+      │  pois_details_{lang}.json — 상세 업데이트된 POI (증분 누적)
       ▼
   MongoDB (선택)
-      │  pois_kr, pois_en: id 기준 upsert
+      │  pois_kr, pois_en: id 기준 upsert (기본) + $set 부분 업데이트 (상세)
       │  pois_geo_kr, pois_geo_en: properties.id 기준 upsert
       ▼
   MongoDB Collections
@@ -235,6 +251,40 @@ GeoJSON FeatureCollection 포맷으로 출력합니다.
   ]
 }
 ```
+
+### `output/pois_details_{lang}.json`
+
+POI 상세 업데이트 결과를 증분 누적하여 저장합니다. 기존 `pois_{lang}.json`의 필드에 상세 정보가 보강됩니다.
+
+```json
+[
+  {
+    "id": "1254680",
+    "description": "갑곶돈대는 강화해협을 지키는 요새로...",
+    "mlevel": "6",
+    "intro": [
+      { "infocenter": "032-930-7076", "restdate": "연중무휴", "usetime": "09:00~18:00", "parking": "가능" }
+    ],
+    "info": [
+      { "infoname": "화장실", "infotext": "있음" },
+      { "infoname": "입장료", "infotext": "무료" }
+    ],
+    "detailUpdatedAt": "2026-03-04",
+    "...기존 필드 유지..."
+  }
+]
+```
+
+| 보강 필드 | 출처 | 설명 |
+|-----------|------|------|
+| `description` | detailCommon2 `overview` | 상세 설명으로 교체 (기존: title과 동일) |
+| `mlevel` | detailCommon2 `mlevel` | 지도 줌 레벨 (신규) |
+| `coordinates` | detailCommon2 `mapx/mapy` | 좌표 보정 (유효한 경우만) |
+| `website` | detailCommon2 `homepage` | 홈페이지 (HTML 태그 제거) |
+| `contact` | detailCommon2 `tel` | 연락처 |
+| `intro` | detailIntro2 전체 | 소개정보 배열 (주차, 운영시간 등) |
+| `info` | detailInfo2 전체 | 반복정보 배열 (화장실, 입장료 등) |
+| `detailUpdatedAt` | 실행 날짜 | 증분 업데이트 스킵 판별용 |
 
 ### MongoDB 컬렉션
 
