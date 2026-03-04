@@ -1,5 +1,30 @@
 # Changelog
 
+## [Unreleased] — 2026-03-04
+
+### 7. pois.py — 좌표 변환 에러 수정
+
+**파일:** `src/transformers/pois.py`
+
+#### 7-1. `_safe_float()` 헬퍼 함수 추가
+
+API 원본 데이터의 `mapy`/`mapx` 필드에 문자열 `'null'`이 포함되어 `ValueError: could not convert string to float: 'null'` 에러 발생.
+`_safe_float()` 모듈 레벨 함수를 추가하여 `'null'`, 빈값, 기타 변환 불가 값을 안전하게 0.0으로 처리.
+
+#### 7-2. `_transform_item()` — 좌표 파싱에 `_safe_float` 적용
+
+```python
+# 변경 전
+"lat": float(lat_str) if lat_str else 0.0,
+"lng": float(lng_str) if lng_str else 0.0,
+
+# 변경 후
+"lat": _safe_float(lat_str),
+"lng": _safe_float(lng_str),
+```
+
+---
+
 ## [Unreleased] — 2026-02-28
 
 ### 6. shrimp-rules.md — 프로젝트 규칙 문서 초기화
