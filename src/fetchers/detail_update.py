@@ -45,6 +45,7 @@ def _filter_pending_pois(
     existing_details: list[dict],
     region: str | None,
     limit: int,
+    lang: str = "kr",
 ) -> list[dict]:
     """업데이트가 필요한 POI만 필터링한다.
 
@@ -53,15 +54,26 @@ def _filter_pending_pois(
         existing_details: 이미 업데이트된 POI 목록
         region: 지역 slug 필터 (None이면 전체)
         limit: 최대 처리 건수
+        lang: 언어 코드 (kr/en) — kr일 때만 detailPetUpdated 체크
 
     Returns:
         업데이트가 필요한 POI 목록 (limit개 이하)
     """
-    # 이미 업데이트된 ID 집합 (detailUpdatedAt + intro + info + detailImageUpdated 모두 존재해야 스킵)
+    # 이미 업데이트된 ID 집합
+    # kr: detailUpdatedAt + intro + info + detailImageUpdated + detailPetUpdated 모두 존재해야 스킵
+    # en: detailUpdatedAt + intro + info + detailImageUpdated 있으면 스킵 (pet 미지원)
+    def _is_complete(d: dict) -> bool:
+        base = d.get("detailUpdatedAt") and "intro" in d and "info" in d and d.get("detailImageUpdated")
+        if not base:
+            return False
+        if lang == "kr":
+            return bool(d.get("detailPetUpdated"))
+        return True
+
     updated_ids = {
         d["id"]
         for d in existing_details
-        if d.get("detailUpdatedAt") and "intro" in d and "info" in d and d.get("detailImageUpdated")
+        if _is_complete(d)
     }
 
     pending = []
@@ -94,11 +106,11 @@ async def _fetch_detail_for_poi(
     client,
     lang: str,
     poi: dict,
-) -> tuple[dict | None, list[dict] | None, list[dict] | None, list[dict] | None]:
-    """단일 POI에 대해 detailCommon2, detailIntro2, detailInfo2, detailImage2를 호출한다.
+) -> tuple[dict | None, list[dict] | None, list[dict] | None, list[dict] | None, dict | None]:
+    """단일 POI에 대해 detailCommon2, detailIntro2, detailInfo2, detailImage2, detailPetTour2를 호출한다.
 
     Returns:
-        (common_item, intro_items, info_items, image_items) — 각각 API 응답 또는 None
+        (common_item, intro_items, info_items, image_items, pet_item) — 각각 API 응답 또는 None
     """
     content_id = poi["id"]
     content_type_id = poi.get("source", {}).get("contentTypeId", "")
@@ -107,6 +119,7 @@ async def _fetch_detail_for_poi(
     intro_items = None
     info_items = None
     image_items = None
+    pet_item = None
 
     # detailCommon2 호출 (공통 파라미터 + contentId만 사용)
     try:
@@ -168,7 +181,23 @@ async def _fetch_detail_for_poi(
     except Exception as e:
         print(f"    [경고] detailImage2 호출 실패 (contentId={content_id}): {e}")
 
-    return common_item, intro_items, info_items, image_items
+    # detailPetTour2 호출 (반려동물 정보, 한글(kr)만 지원, 첫 번째 항목만 추출)
+    if lang in ENDPOINTS.get("detail_pet", {}):
+        await asyncio.sleep(REQUEST_DELAY)
+        try:
+            url = ENDPOINTS["detail_pet"][lang]
+            items = await fetch_single(
+                client,
+                url,
+                {"contentId": content_id},
+            )
+            if items:
+                pet_item = items[0]
+                save_raw(items, "detail_pet", lang, content_id)
+        except Exception as e:
+            print(f"    [경고] detailPetTour2 호출 실패 (contentId={content_id}): {e}")
+
+    return common_item, intro_items, info_items, image_items, pet_item
 
 
 async def fetch_detail_update(
@@ -215,7 +244,7 @@ async def fetch_detail_update(
 
             # 미처리 POI 필터링
             pending = _filter_pending_pois(
-                all_pois, existing_details, region, limit
+                all_pois, existing_details, region, limit, lang
             )
 
             _print_progress(lang, total_target, done_count, len(pending))
@@ -234,18 +263,18 @@ async def fetch_detail_update(
                 )
 
                 await asyncio.sleep(REQUEST_DELAY)
-                common, intro_items, info_items, image_items = await _fetch_detail_for_poi(
+                common, intro_items, info_items, image_items, pet_item = await _fetch_detail_for_poi(
                     client, lang, poi
                 )
 
-                # 4개 모두 실패한 경우 스킵
-                if common is None and intro_items is None and info_items is None and image_items is None:
+                # 모두 실패한 경우 스킵
+                if common is None and intro_items is None and info_items is None and image_items is None and pet_item is None:
                     print(f"    → 스킵 (API 응답 없음)")
                     continue
 
                 # 병합
                 updated_poi = merge_detail_to_poi(
-                    poi, common, intro_items, info_items, image_items
+                    poi, common, intro_items, info_items, image_items, pet_item
                 )
                 details_map[updated_poi["id"]] = updated_poi
                 newly_updated.append(updated_poi)

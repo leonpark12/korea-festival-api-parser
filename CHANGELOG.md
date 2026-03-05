@@ -2,6 +2,25 @@
 
 ## [Unreleased] — 2026-03-05
 
+### 12. detailPetTour2 API 추가 — 반려동물 정보
+
+한글(kr)만 지원하는 `detailPetTour2` API를 step 3에 추가하여 POI에 반려동물 동반 정보(`pet` attribute)를 병합.
+
+#### 수정 파일
+
+- **`src/config.py`** — `ENDPOINTS`에 `detail_pet` (kr만) 추가
+- **`src/fetchers/detail_update.py`**
+  - `_fetch_detail_for_poi()` 반환: 4-tuple → 5-tuple (`pet_item` 추가, kr만 호출)
+  - `_filter_pending_pois()` — `lang` 파라미터 추가, kr에서만 `detailPetUpdated` 체크
+  - 호출부: 5-tuple 언패킹 + `merge_detail_to_poi` 6인자 호출
+- **`src/transformers/pois_detail.py`**
+  - `merge_detail_to_poi()` 시그니처 6인자로 변경 (`pet_item` 추가)
+  - 반려동물 병합: 첫 번째 항목을 `_clean_item()` 적용 후 `pet` object로 저장
+  - `detailPetUpdated` 플래그 설정 (재호출 방지)
+- **`src/storage/mongodb.py`** — `update_fields`에 `pet`, `detailPetUpdated` 추가
+
+---
+
 ### 11. detailImage2 API 추가 — 이미지 배열 대체
 
 POI의 전체 이미지 목록을 `detailImage2` API로 가져와 기존 `firstimage` 기반 `images` 배열을 대체.

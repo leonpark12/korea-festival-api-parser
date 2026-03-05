@@ -43,6 +43,9 @@ ENDPOINTS = {
         "kr": "https://apis.data.go.kr/B551011/KorService2/detailImage2",
         "en": "https://apis.data.go.kr/B551011/EngService2/detailImage2",
     },
+    "detail_pet": {
+        "kr": "https://apis.data.go.kr/B551011/KorService2/detailPetTour2",
+    },
 }
 
 REQUEST_DELAY = 0.3  # 요청 간 대기 시간 (초)
