@@ -33,8 +33,9 @@ def merge_detail_to_poi(
     intro_items: list[dict] | None,
     info_items: list[dict] | None,
     image_items: list[dict] | None = None,
+    pet_item: dict | None = None,
 ) -> dict:
-    """detailCommon2/detailIntro2/detailInfo2/detailImage2 응답을 기존 POI 문서에 병합한다.
+    """detailCommon2/detailIntro2/detailInfo2/detailImage2/detailPetTour2 응답을 기존 POI 문서에 병합한다.
 
     Args:
         poi: 기존 POI 문서 (pois_{lang}.json의 항목)
@@ -42,6 +43,7 @@ def merge_detail_to_poi(
         intro_items: detailIntro2 API 응답 항목 배열 (없으면 None)
         info_items: detailInfo2 API 응답 항목 배열 (없으면 None)
         image_items: detailImage2 API 응답 항목 배열 (없으면 None)
+        pet_item: detailPetTour2 API 응답 첫 번째 항목 (없으면 None, 한글만 지원)
 
     Returns:
         업데이트된 POI 문서 (원본을 복사하여 반환)
@@ -117,6 +119,13 @@ def merge_detail_to_poi(
         if first_small:
             updated["thumbnail"] = _normalize_url(first_small)
         updated["detailImageUpdated"] = True
+
+    # detailPetTour2 → pet (단일 객체, 한글만 지원)
+    if pet_item is not None:
+        cleaned = _clean_item(pet_item)
+        if cleaned:
+            updated["pet"] = cleaned
+        updated["detailPetUpdated"] = True
 
     # 업데이트 완료 표시 (스킵 판별용)
     updated["detailUpdatedAt"] = date.today().isoformat()

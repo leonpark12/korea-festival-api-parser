@@ -70,6 +70,7 @@ def update_pois_details_to_mongodb(
         "description", "mlevel", "coordinates", "location",
         "contact", "website", "intro", "info", "detailUpdatedAt",
         "thumbnail", "appCategory", "images", "detailImageUpdated",
+        "pet", "detailPetUpdated",
     )
 
     client = _get_client()

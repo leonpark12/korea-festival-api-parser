@@ -50,7 +50,7 @@ uv run python main.py --step 1
 # Step 2: 관광정보 수신 + 변환 + MongoDB 저장
 uv run python main.py --step 2
 
-# Step 3: POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2)
+# Step 3: POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2)
 uv run python main.py --step 3
 
 # Step 3: 특정 지역만 (예: 인천)
@@ -100,12 +100,12 @@ korea-festival-api-parser/
 │   │   ├── ldong_code.py           # 행정구역(법정동) 코드
 │   │   ├── category_code.py        # 관광 분류체계 코드 (3-depth)
 │   │   ├── area_based.py           # 지역기반 관광정보 (totalCount 기반 전체 페이지 순회)
-│   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2)
+│   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2)
 │   ├── transformers/               # 데이터 변환
 │   │   ├── categories.py           # 분류체계 → categories.json + categories_db.json
 │   │   ├── regions.py              # 행정구역 → regions.json
 │   │   ├── pois.py                 # 관광정보 → pois_{lang}.json + pois_geo_{lang}.json
-│   │   └── pois_detail.py          # 상세정보 병합 (detailCommon2/detailIntro2/detailInfo2/detailImage2 → POI)
+│   │   └── pois_detail.py          # 상세정보 병합 (detailCommon2/detailIntro2/detailInfo2/detailImage2/detailPetTour2 → POI)
 │   └── storage/                    # 데이터 저장
 │       └── mongodb.py              # MongoDB upsert 저장 + 상세 부분 업데이트
 ├── raw/                            # API 원본 응답 캐시 (git 미추적)
@@ -123,7 +123,7 @@ data.go.kr API
   Fetchers (수신)
       │  Step 1: depth1~3 코드를 언어별(kr/en) 수신
       │  Step 2: areaBasedList2 — totalCount 기반 전체 페이지 순회
-      │  Step 3: detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 — POI별 상세 정보 수신
+      │  Step 3: detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2(kr만) — POI별 상세 정보 수신
       │  raw/{category}/{lang}/*.json 저장
       ▼
   Transformers (변환)
@@ -287,6 +287,8 @@ POI 상세 업데이트 결과를 증분 누적하여 저장합니다. 기존 `p
 | `images` | detailImage2 `originimgurl` | 전체 이미지 URL 배열 (https 정규화) |
 | `thumbnail` | detailImage2 첫 번째 `smallimageurl` | 썸네일 이미지 URL |
 | `detailImageUpdated` | 플래그 | 이미지 API 처리 완료 표시 |
+| `pet` | detailPetTour2 첫 번째 항목 | 반려동물 동반 정보 객체 (한글만, `acmpyTypeCd`, `acmpyPsblCpam` 등) |
+| `detailPetUpdated` | 플래그 | 반려동물 API 처리 완료 표시 (한글만) |
 | `detailUpdatedAt` | 실행 날짜 | 증분 업데이트 스킵 판별용 |
 
 ### MongoDB 컬렉션
