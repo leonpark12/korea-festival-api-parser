@@ -67,8 +67,9 @@ def update_pois_details_to_mongodb(
     """
     # 부분 업데이트할 필드 목록
     update_fields = (
-        "description", "mlevel", "coordinates", "contact",
-        "website", "intro", "info", "detailUpdatedAt",
+        "description", "mlevel", "coordinates", "location",
+        "contact", "website", "intro", "info", "detailUpdatedAt",
+        "thumbnail", "appCategory", "images", "detailImageUpdated",
     )
 
     client = _get_client()

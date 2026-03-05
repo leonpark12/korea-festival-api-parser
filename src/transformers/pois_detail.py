@@ -11,10 +11,17 @@ def _strip_html(text: str) -> str:
     return re.sub(r"<[^>]+>", "", text).strip()
 
 
+def _normalize_url(url: str) -> str:
+    """이미지 URL을 https로 정규화한다."""
+    if url.startswith("http://"):
+        return "https://" + url[7:]
+    return url
+
+
 def _clean_item(item: dict) -> dict:
     """API 응답 항목에서 불필요한 필드를 제거하고 빈 값을 필터링한다."""
     cleaned = dict(item)
-    for key in ("contentid", "contenttypeid"):
+    for key in ("contentid", "contenttypeid", "serialnum"):
         cleaned.pop(key, None)
     # 빈 값 필드 제거
     return {k: v for k, v in cleaned.items() if v}
@@ -25,14 +32,16 @@ def merge_detail_to_poi(
     common: dict | None,
     intro_items: list[dict] | None,
     info_items: list[dict] | None,
+    image_items: list[dict] | None = None,
 ) -> dict:
-    """detailCommon2/detailIntro2/detailInfo2 응답을 기존 POI 문서에 병합한다.
+    """detailCommon2/detailIntro2/detailInfo2/detailImage2 응답을 기존 POI 문서에 병합한다.
 
     Args:
         poi: 기존 POI 문서 (pois_{lang}.json의 항목)
         common: detailCommon2 API 응답 항목 (없으면 None)
         intro_items: detailIntro2 API 응답 항목 배열 (없으면 None)
         info_items: detailInfo2 API 응답 항목 배열 (없으면 None)
+        image_items: detailImage2 API 응답 항목 배열 (없으면 None)
 
     Returns:
         업데이트된 POI 문서 (원본을 복사하여 반환)
@@ -48,10 +57,13 @@ def merge_detail_to_poi(
         if overview:
             updated["description"] = overview
 
-        # mlevel (신규 필드)
+        # mlevel (정수 변환)
         mlevel = common.get("mlevel", "")
         if mlevel:
-            updated["mlevel"] = mlevel
+            try:
+                updated["mlevel"] = int(mlevel)
+            except (ValueError, TypeError):
+                updated["mlevel"] = 0
 
         # 좌표 업데이트 (유효한 경우만)
         mapx = common.get("mapx", "")
@@ -62,6 +74,10 @@ def merge_detail_to_poi(
                 lat = float(mapy)
                 if lng != 0.0 and lat != 0.0:
                     updated["coordinates"] = {"lat": lat, "lng": lng}
+                    updated["location"] = {
+                        "type": "Point",
+                        "coordinates": [lng, lat],
+                    }
             except (ValueError, TypeError):
                 pass
 
@@ -86,6 +102,21 @@ def merge_detail_to_poi(
         updated["info"] = [_clean_item(item) for item in info_items]
     else:
         updated["info"] = []
+
+    # detailImage2 → images 배열 + thumbnail
+    if image_items:
+        images = [
+            _normalize_url(item.get("originimgurl", ""))
+            for item in image_items
+            if item.get("originimgurl")
+        ]
+        if images:
+            updated["images"] = images
+        # 첫 번째 smallimageurl → thumbnail
+        first_small = image_items[0].get("smallimageurl", "")
+        if first_small:
+            updated["thumbnail"] = _normalize_url(first_small)
+        updated["detailImageUpdated"] = True
 
     # 업데이트 완료 표시 (스킵 판별용)
     updated["detailUpdatedAt"] = date.today().isoformat()

@@ -57,11 +57,11 @@ def _filter_pending_pois(
     Returns:
         업데이트가 필요한 POI 목록 (limit개 이하)
     """
-    # 이미 업데이트된 ID 집합 (detailUpdatedAt + intro + info 모두 존재해야 스킵)
+    # 이미 업데이트된 ID 집합 (detailUpdatedAt + intro + info + detailImageUpdated 모두 존재해야 스킵)
     updated_ids = {
         d["id"]
         for d in existing_details
-        if d.get("detailUpdatedAt") and "intro" in d and "info" in d
+        if d.get("detailUpdatedAt") and "intro" in d and "info" in d and d.get("detailImageUpdated")
     }
 
     pending = []
@@ -94,11 +94,11 @@ async def _fetch_detail_for_poi(
     client,
     lang: str,
     poi: dict,
-) -> tuple[dict | None, list[dict] | None, list[dict] | None]:
-    """단일 POI에 대해 detailCommon2, detailIntro2, detailInfo2를 호출한다.
+) -> tuple[dict | None, list[dict] | None, list[dict] | None, list[dict] | None]:
+    """단일 POI에 대해 detailCommon2, detailIntro2, detailInfo2, detailImage2를 호출한다.
 
     Returns:
-        (common_item, intro_items, info_items) — 각각 API 응답 또는 None
+        (common_item, intro_items, info_items, image_items) — 각각 API 응답 또는 None
     """
     content_id = poi["id"]
     content_type_id = poi.get("source", {}).get("contentTypeId", "")
@@ -106,6 +106,7 @@ async def _fetch_detail_for_poi(
     common_item = None
     intro_items = None
     info_items = None
+    image_items = None
 
     # detailCommon2 호출 (공통 파라미터 + contentId만 사용)
     try:
@@ -151,7 +152,23 @@ async def _fetch_detail_for_poi(
     except Exception as e:
         print(f"    [경고] detailInfo2 호출 실패 (contentId={content_id}): {e}")
 
-    return common_item, intro_items, info_items
+    await asyncio.sleep(REQUEST_DELAY)
+
+    # detailImage2 호출 (이미지 목록, contentId만 전달)
+    try:
+        url = ENDPOINTS["detail_image"][lang]
+        items = await fetch_single(
+            client,
+            url,
+            {"contentId": content_id},
+        )
+        if items:
+            image_items = items
+            save_raw(items, "detail_image", lang, content_id)
+    except Exception as e:
+        print(f"    [경고] detailImage2 호출 실패 (contentId={content_id}): {e}")
+
+    return common_item, intro_items, info_items, image_items
 
 
 async def fetch_detail_update(
@@ -205,10 +222,11 @@ async def fetch_detail_update(
 
             if not pending:
                 print(f"[{lang}] 모든 POI가 이미 업데이트 완료됨")
-                result[lang] = existing_details
+                result[lang] = []
                 continue
 
             success_count = 0
+            newly_updated = []  # 새로 업데이트한 POI만 추적
             for idx, poi in enumerate(pending, 1):
                 print(
                     f"  [{lang}] ({idx}/{len(pending)}) "
@@ -216,20 +234,21 @@ async def fetch_detail_update(
                 )
 
                 await asyncio.sleep(REQUEST_DELAY)
-                common, intro_items, info_items = await _fetch_detail_for_poi(
+                common, intro_items, info_items, image_items = await _fetch_detail_for_poi(
                     client, lang, poi
                 )
 
-                # 3개 모두 실패한 경우 스킵
-                if common is None and intro_items is None and info_items is None:
+                # 4개 모두 실패한 경우 스킵
+                if common is None and intro_items is None and info_items is None and image_items is None:
                     print(f"    → 스킵 (API 응답 없음)")
                     continue
 
                 # 병합
                 updated_poi = merge_detail_to_poi(
-                    poi, common, intro_items, info_items
+                    poi, common, intro_items, info_items, image_items
                 )
                 details_map[updated_poi["id"]] = updated_poi
+                newly_updated.append(updated_poi)
                 success_count += 1
 
                 # 중간 저장 (checkpoint)
@@ -243,7 +262,7 @@ async def fetch_detail_update(
             # 최종 저장
             final_list = list(details_map.values())
             path = _save_details(lang, final_list)
-            result[lang] = final_list
+            result[lang] = newly_updated  # 새로 업데이트한 POI만 반환
             print(
                 f"[{lang}] 완료: {success_count}건 업데이트, "
                 f"총 {len(final_list)}건 저장 → {path}"

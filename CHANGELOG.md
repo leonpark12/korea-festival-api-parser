@@ -1,5 +1,43 @@
 # Changelog
 
+## [Unreleased] — 2026-03-05
+
+### 11. detailImage2 API 추가 — 이미지 배열 대체
+
+POI의 전체 이미지 목록을 `detailImage2` API로 가져와 기존 `firstimage` 기반 `images` 배열을 대체.
+
+#### 수정 파일
+
+- **`src/config.py`** — `ENDPOINTS`에 `detail_image` (kr/en) 추가
+- **`src/fetchers/detail_update.py`**
+  - `_fetch_detail_for_poi()` 반환: 3-tuple → 4-tuple (`image_items` 추가)
+  - `detailImage2` API 호출 추가 (contentId만 전달)
+  - `_filter_pending_pois()` 스킵 조건에 `detailImageUpdated` 플래그 체크 추가
+- **`src/transformers/pois_detail.py`**
+  - `_normalize_url()` 헬퍼 추가 (http → https 정규화)
+  - `merge_detail_to_poi()` 시그니처 5인자로 변경 (`image_items` 추가)
+  - 이미지 병합 로직: `originimgurl` → `images` 배열, `smallimageurl` → `thumbnail`
+  - `detailImageUpdated` 플래그 설정으로 이미지 API 처리 완료 표시
+  - 이미지가 없는 POI는 기존 `images`/`thumbnail` 유지
+- **`src/storage/mongodb.py`** — `update_fields`에 `images`, `detailImageUpdated` 추가
+
+---
+
+### 10. Step 3 MongoDB 불필요한 업데이트 수정
+
+**파일:** `src/fetchers/detail_update.py`
+
+`fetch_detail_update()`가 새로 업데이트한 POI뿐 아니라 기존 업데이트된 전체 POI를 반환하여 MongoDB에 불필요한 업데이트가 발생하는 문제 수정.
+
+#### 변경 내용
+
+- `newly_updated` 리스트 추가: 이번 실행에서 새로 업데이트한 POI만 별도 추적
+- `result[lang]`에 전체 리스트(`final_list`) 대신 `newly_updated`만 반환
+- JSON 파일 저장(`_save_details`)은 기존대로 전체 리스트 유지 (누적 관리)
+- 업데이트 대상이 없는 경우 기존 전체 리스트 대신 빈 리스트 `[]` 반환
+
+---
+
 ## [Unreleased] — 2026-03-04
 
 ### 9. POI 상세 업데이트 — 반복정보(detailInfo2) 추가 및 소개정보 데이터 구조 변경

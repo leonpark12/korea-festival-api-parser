@@ -26,6 +26,35 @@ REGION_CODE_MAP = {
     "52": "jeonbuk",
 }
 
+# 원본 카테고리명 → 앱 카테고리 코드 매핑
+CATEGORY_APP_MAP_KR: dict[str, str] = {
+    "역사관광": "culture",
+    "문화관광": "culture",
+    "자연관광": "nature",
+    "축제/공연/행사": "festival",
+    "축제공연행사": "festival",
+    "숙박": "accommodation",
+    "레저스포츠": "leisure",
+    "쇼핑": "shopping",
+    "음식": "restaurant",
+    "체험관광": "attraction",
+    "추천코스": "attraction",
+}
+
+CATEGORY_APP_MAP_EN: dict[str, str] = {
+    "Historical Tourism": "culture",
+    "Cultural Tourism": "culture",
+    "Nature Tourism": "nature",
+    "Festivals/Performances/Events": "festival",
+    "Festivals/Events": "festival",
+    "Accommodation": "accommodation",
+    "Leisure Sports": "leisure",
+    "Shopping": "shopping",
+    "Food": "restaurant",
+    "Experiential Tourism": "attraction",
+    "Recommended Course": "attraction",
+}
+
 # lclsSystm3 코드 기반 제외 필터 (kr/en 각각 별도 설정 가능)
 EXCLUDE_LCLS3_KR: list[str] = ["SH040300", "FD010100", "AC030300", "AC030400", "AC040100", "AC050100", "AC050200", "AC050300", "AC050400", "AC060100", "EX060100", "EX060200", "EX060300", "EX060400", "EX060500", "EX060600", "EX060700", "EX060800", "EX060900", "EX061000", "FD030100", "FD030200", "FD030300", "FD030400", "FD030500", "FD030600", "FD040100", "FD040200", "FD040300", "FD040400", "FD040500", "FD050100", "FD050200", "FD050300", "NA010500", "NA020100", "NA020200", "NA020300", "NA020400", "NA020500", "NA020600", "NA020700", "SH050100", "SH050200", "VE010300", "VE010400", "VE010500", "VE010600", "VE010700", "VE010800", "VE010900", "VE030100", "VE030200", "VE030300", "VE030400", "VE030500", "VE060200", "VE080600", "VE090100", "VE090200", "VE090300", "VE090400", "VE090500", "VE090600", "VE100100", "VE100200", "VE110100", "VE110200", "VE110300", "VE110400", "VE110500", "VE110600", "VE120100", "VE120200", "VE120300"]  # 예: ["SH040300", "FD010100"]
 EXCLUDE_LCLS3_EN: list[str] = ["SH040300", "FD010100", "AC030300", "AC030400", "AC040100", "AC050100", "AC050200", "AC050300", "AC050400", "AC060100", "EX060100", "EX060200", "EX060300", "EX060400", "EX060500", "EX060600", "EX060700", "EX060800", "EX060900", "EX061000", "FD030100", "FD030200", "FD030300", "FD030400", "FD030500", "FD030600", "FD040100", "FD040200", "FD040300", "FD040400", "FD040500", "FD050100", "FD050200", "FD050300", "NA010500", "NA020100", "NA020200", "NA020300", "NA020400", "NA020500", "NA020600", "NA020700", "SH050100", "SH050200", "VE010300", "VE010400", "VE010500", "VE010600", "VE010700", "VE010800", "VE010900", "VE030100", "VE030200", "VE030300", "VE030400", "VE030500", "VE060200", "VE080600", "VE090100", "VE090200", "VE090300", "VE090400", "VE090500", "VE090600", "VE100100", "VE100200", "VE110100", "VE110200", "VE110300", "VE110400", "VE110500", "VE110600", "VE120100", "VE120200", "VE120300"]  # 예: ["SH040300", "FD010100"]
@@ -55,6 +84,13 @@ def _safe_float(val: str) -> float:
         return float(val)
     except (ValueError, TypeError):
         return 0.0
+
+
+def _normalize_url(url: str) -> str:
+    """이미지 URL을 https로 정규화한다."""
+    if url.startswith("http://"):
+        return "https://" + url[7:]
+    return url
 
 
 def _format_date(raw: str) -> str:
@@ -94,9 +130,9 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
     # region: lDongRegnCd → slug
     region = REGION_CODE_MAP.get(item.get("lDongRegnCd", ""), "")
 
-    # images: 빈값 필터링
+    # images: 빈값 필터링 + HTTPS 정규화
     images = [
-        img
+        _normalize_url(img)
         for img in [item.get("firstimage", ""), item.get("firstimage2", "")]
         if img
     ]
@@ -112,6 +148,10 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
                 tags.append(name)
                 seen.add(name)
 
+    # appCategory: 앱 카테고리 코드
+    app_map = CATEGORY_APP_MAP_KR if lang == "ko" else CATEGORY_APP_MAP_EN
+    app_category = app_map.get(category, "attraction")
+
     # source: 원본 데이터 추적용
     source = {
         "contentTypeId":item.get("contenttypeid", ""),
@@ -123,10 +163,16 @@ def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
         "id": content_id,
         "slug": content_id,
         "category": category,
+        "appCategory": app_category,
+        "thumbnail": images[0] if images else "",
         "coordinates": coordinates,
+        "location": {
+            "type": "Point",
+            "coordinates": [coordinates["lng"], coordinates["lat"]],
+        },
         "name": item.get("title", ""),
         "address": address,
-        "description": item.get("title", ""),
+        "description": "",
         "region": region,
         "images": images,
         "contact": item.get("tel", ""),
