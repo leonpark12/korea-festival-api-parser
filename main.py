@@ -26,12 +26,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--save-mongodb",
         action="store_true",
-        help="output 파일 기반으로 MongoDB 저장만 실행 (pois)",
+        help="output 파일 기반으로 MongoDB 저장만 실행 (regions + pois)",
     )
     parser.add_argument(
         "--save-mongodb-details",
         action="store_true",
         help="output 파일 기반으로 MongoDB 상세 업데이트만 실행",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="완료된 POI도 재수신 (--step 3 전용). 기존 완료 체크를 무시하고 모든 POI를 다시 처리",
     )
     parser.add_argument(
         "--region",
@@ -67,12 +72,22 @@ async def run_fetch_category_code() -> dict:
 
 
 def run_transform_regions(ldong_data: dict | None = None) -> None:
-    from src.transformers.regions import save_regions, transform_regions
+    from src.transformers.regions import (
+        save_regions,
+        save_regions_db,
+        transform_regions,
+        transform_regions_db,
+    )
 
     print("[Transform] regions.json 변환 시작...")
     regions = transform_regions(ldong_data)
     path = save_regions(regions)
     print(f"[Transform] regions.json 저장 완료: {path} ({len(regions)} regions)")
+
+    print("[Transform] regions_db.json 변환 시작...")
+    docs = transform_regions_db(ldong_data)
+    db_path = save_regions_db(docs)
+    print(f"[Transform] regions_db.json 저장 완료: {db_path} ({len(docs)} documents)")
 
 
 def run_transform_categories(cat_data: dict | None = None) -> None:
@@ -94,12 +109,45 @@ def run_transform_categories(cat_data: dict | None = None) -> None:
     print(f"[Transform] categories_db.json 저장 완료: {db_path} ({len(docs)} documents)")
 
 
+def _save_regions_to_mongodb(docs: list[dict] | None = None) -> None:
+    """변환된 regions_db 데이터를 MongoDB에 저장한다.
+
+    docs가 None이면 output/regions_db.json에서 로드한다.
+    """
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    if not os.environ.get("MONGODB_URI"):
+        print("[MongoDB] MONGODB_URI 미설정, MongoDB 저장 건너뜀")
+        return
+
+    if docs is None:
+        import json
+        from pathlib import Path
+
+        regions_db_path = Path(__file__).resolve().parent / "output" / "regions_db.json"
+        if not regions_db_path.exists():
+            print(f"[MongoDB] {regions_db_path} 파일 없음, 건너뜀")
+            return
+        docs = json.loads(regions_db_path.read_text(encoding="utf-8"))
+
+    from src.storage.mongodb import save_regions_to_mongodb
+
+    print("[MongoDB] regions 저장 시작...")
+    count = save_regions_to_mongodb(docs)
+    print(f"[MongoDB] regions 저장 완료: {count}건")
+
+
 async def run_step1() -> None:
     """Phase 1: 코드 데이터 수신 + 변환"""
     ldong_data = await run_fetch_ldong_code()
     cat_data = await run_fetch_category_code()
     run_transform_regions(ldong_data)
     run_transform_categories(cat_data)
+    _save_regions_to_mongodb()
 
 
 async def run_fetch_area_based() -> dict:
@@ -185,7 +233,7 @@ async def run_step2() -> None:
 
 
 async def run_fetch_detail_update(
-    region: str | None = None, limit: int | None = None
+    region: str | None = None, limit: int | None = None, force: bool = False
 ) -> dict:
     from src.config import DETAIL_UPDATE_MAX_POIS
     from src.fetchers.detail_update import fetch_detail_update
@@ -193,7 +241,7 @@ async def run_fetch_detail_update(
     effective_limit = limit if limit is not None else DETAIL_UPDATE_MAX_POIS
     region_label = region or "전체"
     print(f"[Fetch] POI 상세 업데이트 수신 시작 (지역: {region_label}, 제한: {effective_limit}건)...")
-    data = await fetch_detail_update(region=region, limit=effective_limit)
+    data = await fetch_detail_update(region=region, limit=effective_limit, force=force)
     print("[Fetch] POI 상세 업데이트 수신 완료")
     return data
 
@@ -245,9 +293,9 @@ def _load_details_from_output() -> dict | None:
     return data
 
 
-async def run_step3(region: str | None = None, limit: int | None = None) -> None:
+async def run_step3(region: str | None = None, limit: int | None = None, force: bool = False) -> None:
     """Phase 3: POI 상세 업데이트 수신 + MongoDB 저장"""
-    data = await run_fetch_detail_update(region=region, limit=limit)
+    data = await run_fetch_detail_update(region=region, limit=limit, force=force)
     _save_details_to_mongodb(data)
 
 
@@ -261,6 +309,7 @@ async def main() -> None:
 
     if args.save_mongodb:
         print("=== MongoDB 저장만 실행 ===")
+        _save_regions_to_mongodb()
         _save_pois_to_mongodb()
         return
 
@@ -288,7 +337,7 @@ async def main() -> None:
         elif args.step == 2:
             await run_step2()
         elif args.step == 3:
-            await run_step3(region=args.region, limit=args.limit)
+            await run_step3(region=args.region, limit=args.limit, force=args.force)
         return
 
     # 인자 없으면 전체 실행 (현재는 step 1만)

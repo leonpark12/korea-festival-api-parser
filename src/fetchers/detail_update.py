@@ -46,6 +46,7 @@ def _filter_pending_pois(
     region: str | None,
     limit: int,
     lang: str = "kr",
+    force: bool = False,
 ) -> list[dict]:
     """업데이트가 필요한 POI만 필터링한다.
 
@@ -55,26 +56,31 @@ def _filter_pending_pois(
         region: 지역 slug 필터 (None이면 전체)
         limit: 최대 처리 건수
         lang: 언어 코드 (kr/en) — kr일 때만 detailPetUpdated 체크
+        force: True이면 완료 체크를 무시하고 모든 POI를 재수신 대상으로 포함
 
     Returns:
         업데이트가 필요한 POI 목록 (limit개 이하)
     """
-    # 이미 업데이트된 ID 집합
-    # kr: detailUpdatedAt + intro + info + detailImageUpdated + detailPetUpdated 모두 존재해야 스킵
-    # en: detailUpdatedAt + intro + info + detailImageUpdated 있으면 스킵 (pet 미지원)
-    def _is_complete(d: dict) -> bool:
-        base = d.get("detailUpdatedAt") and "intro" in d and "info" in d and d.get("detailImageUpdated")
-        if not base:
-            return False
-        if lang == "kr":
-            return bool(d.get("detailPetUpdated"))
-        return True
+    # force 모드일 때는 완료 체크 무시
+    if force:
+        updated_ids: set[str] = set()
+    else:
+        # 이미 업데이트된 ID 집합
+        # kr: detailUpdatedAt + intro + info + detailImageUpdated + detailPetUpdated 모두 존재해야 스킵
+        # en: detailUpdatedAt + intro + info + detailImageUpdated 있으면 스킵 (pet 미지원)
+        def _is_complete(d: dict) -> bool:
+            base = d.get("detailUpdatedAt") and "intro" in d and "info" in d and d.get("detailImageUpdated")
+            if not base:
+                return False
+            if lang == "kr":
+                return bool(d.get("detailPetUpdated"))
+            return True
 
-    updated_ids = {
-        d["id"]
-        for d in existing_details
-        if _is_complete(d)
-    }
+        updated_ids = {
+            d["id"]
+            for d in existing_details
+            if _is_complete(d)
+        }
 
     pending = []
     for poi in all_pois:
@@ -203,6 +209,7 @@ async def _fetch_detail_for_poi(
 async def fetch_detail_update(
     region: str | None = None,
     limit: int = DETAIL_UPDATE_MAX_POIS,
+    force: bool = False,
 ) -> dict[str, list[dict]]:
     """POI 상세 정보를 수신하여 기존 POI에 병합한다.
 
@@ -244,7 +251,7 @@ async def fetch_detail_update(
 
             # 미처리 POI 필터링
             pending = _filter_pending_pois(
-                all_pois, existing_details, region, limit, lang
+                all_pois, existing_details, region, limit, lang, force
             )
 
             _print_progress(lang, total_target, done_count, len(pending))
@@ -273,8 +280,10 @@ async def fetch_detail_update(
                     continue
 
                 # 병합
+                # 기존 상세 데이터가 있으면 그것을 기반으로 병합 (--force 재수신 시 기존 데이터 보존)
+                base_poi = details_map.get(poi["id"], poi)
                 updated_poi = merge_detail_to_poi(
-                    poi, common, intro_items, info_items, image_items, pet_item
+                    base_poi, common, intro_items, info_items, image_items, pet_item
                 )
                 details_map[updated_poi["id"]] = updated_poi
                 newly_updated.append(updated_poi)
