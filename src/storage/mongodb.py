@@ -119,6 +119,34 @@ def update_pois_details_to_mongodb(
     return stats
 
 
+def save_regions_to_mongodb(
+    docs: list[dict], db_name: str = "korea_tourism"
+) -> int:
+    """regions_db 문서를 MongoDB regions 컬렉션에 upsert 저장한다.
+
+    Args:
+        docs: transform_regions_db()의 반환값
+        db_name: MongoDB 데이터베이스 이름
+
+    Returns:
+        upsert 건수
+    """
+    client = _get_client()
+    db = client[db_name]
+
+    try:
+        ops = [
+            UpdateOne({"_id": doc["_id"]}, {"$set": doc}, upsert=True)
+            for doc in docs
+        ]
+        print(f"  [MongoDB] regions: {len(ops)}건 저장 시작...")
+        count = _bulk_write_batched(db["regions"], ops)
+        print(f"  [MongoDB] regions: {count}건 upsert 완료")
+        return count
+    finally:
+        client.close()
+
+
 def save_pois_to_mongodb(data: dict[str, dict], db_name: str = "korea_tourism") -> dict[str, int]:
     """pois, geojson 데이터를 MongoDB에 upsert 저장한다.
 

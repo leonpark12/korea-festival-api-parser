@@ -58,6 +58,9 @@ uv run python main.py --step 3 --region incheon
 
 # Step 3: 제한된 건수만 테스트
 uv run python main.py --step 3 --region incheon --limit 100
+
+# Step 3: 완료된 POI도 재수신 (--force)
+uv run python main.py --step 3 --force --region incheon
 ```
 
 ### 개별 fetcher 실행
@@ -103,7 +106,7 @@ korea-festival-api-parser/
 │   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2)
 │   ├── transformers/               # 데이터 변환
 │   │   ├── categories.py           # 분류체계 → categories.json + categories_db.json
-│   │   ├── regions.py              # 행정구역 → regions.json
+│   │   ├── regions.py              # 행정구역 → regions.json + regions_db.json
 │   │   ├── pois.py                 # 관광정보 → pois_{lang}.json + pois_geo_{lang}.json
 │   │   └── pois_detail.py          # 상세정보 병합 (detailCommon2/detailIntro2/detailInfo2/detailImage2/detailPetTour2 → POI)
 │   └── storage/                    # 데이터 저장
@@ -202,6 +205,18 @@ data.go.kr API
 ]
 ```
 
+### `output/regions_db.json`
+
+행정구역을 MongoDB 저장용 flat 문서 리스트로 출력합니다. depth1(시/도) + depth2(시/군/구)가 `parent` 참조로 연결됩니다.
+
+```json
+[
+  { "_id": "region", "name": { "en": "Region", "kr": "지역" }, "parent": null },
+  { "_id": "11", "name": { "ko": "서울", "en": "Seoul" }, "parent": "region" },
+  { "_id": "11_110", "name": { "ko": "종로구", "en": "Jongno-gu" }, "parent": "11" }
+]
+```
+
 ### `output/pois_{lang}.json`
 
 지역기반 관광정보를 언어별(kr/en)로 출력합니다.
@@ -297,6 +312,7 @@ POI 상세 업데이트 결과를 증분 누적하여 저장합니다. 기존 `p
 
 | 컬렉션 | upsert 키 | 저장 단위 |
 |--------|-----------|----------|
+| `regions` | `_id` | 행정구역 document (루트 + 시/도 + 시/군/구) |
 | `pois_kr` | `id` | POI document |
 | `pois_en` | `id` | POI document |
 | `pois_geo_kr` | `id` (properties.id 추출) | GeoJSON Feature document |

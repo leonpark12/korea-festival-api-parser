@@ -103,3 +103,94 @@ def save_regions(regions: list[dict]) -> Path:
         json.dumps(regions, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return out_path
+
+
+def transform_regions_db(ldong_data: dict | None = None) -> list[dict]:
+    """법정동 코드 데이터를 MongoDB용 flat 문서 리스트로 변환한다.
+
+    Args:
+        ldong_data: fetch_ldong_code()의 반환값. None이면 raw에서 로드.
+
+    Returns:
+        [{"_id": "region", ...}, {"_id": "11", ...}, {"_id": "11_110", ...}, ...]
+    """
+    if ldong_data is None:
+        kr_depth1 = load_raw("ldong_code", "kr", "depth1")
+        en_depth1 = load_raw("ldong_code", "en", "depth1")
+    else:
+        kr_depth1 = ldong_data["kr"]["depth1"]
+        en_depth1 = ldong_data["en"]["depth1"]
+
+    # 영문 depth1 이름 매핑: code -> name
+    en_d1_map: dict[str, str] = {}
+    for item in en_depth1:
+        code = item.get("lDongRegnCd", item.get("code", ""))
+        name = item.get("lDongRegnNm", item.get("name", ""))
+        if code and name:
+            en_d1_map[code] = name
+
+    # 루트 문서
+    docs: list[dict] = [
+        {"_id": "region", "name": {"en": "Region", "kr": "지역"}, "parent": None},
+    ]
+
+    # depth1 (시/도) 문서 생성 + depth2 처리를 위한 코드 수집
+    depth1_codes: list[str] = []
+    for item in kr_depth1:
+        code = item.get("lDongRegnCd", item.get("code", ""))
+        kr_name = item.get("lDongRegnNm", item.get("name", ""))
+
+        if code not in REGION_CODE_MAP:
+            continue
+
+        depth1_codes.append(code)
+        short_kr = KR_SHORT_NAME.get(kr_name, kr_name)
+        en_name = en_d1_map.get(code, REGION_CODE_MAP[code].capitalize())
+
+        docs.append({
+            "_id": code,
+            "name": {"ko": short_kr, "en": en_name},
+            "parent": "region",
+        })
+
+    # depth2 (시/군/구) 문서 생성
+    for d1_code in depth1_codes:
+        try:
+            kr_depth2 = load_raw("ldong_code", "kr", f"depth2_{d1_code}")
+        except FileNotFoundError:
+            continue
+
+        # 영문 depth2 이름 매핑
+        en_d2_map: dict[str, str] = {}
+        try:
+            en_depth2 = load_raw("ldong_code", "en", f"depth2_{d1_code}")
+            for item in en_depth2:
+                c = item.get("lDongRegnCd", item.get("code", ""))
+                n = item.get("lDongRegnNm", item.get("name", ""))
+                if c and n:
+                    en_d2_map[c] = n
+        except FileNotFoundError:
+            pass
+
+        for item in kr_depth2:
+            d2_code = item.get("lDongRegnCd", item.get("code", ""))
+            kr_name = item.get("lDongRegnNm", item.get("name", ""))
+            en_name = en_d2_map.get(d2_code, kr_name)
+
+            docs.append({
+                "_id": f"{d1_code}_{d2_code}",
+                "name": {"ko": kr_name, "en": en_name},
+                "parent": d1_code,
+            })
+
+    return docs
+
+
+def save_regions_db(docs: list[dict]) -> Path:
+    """변환된 regions_db 데이터를 output/regions_db.json으로 저장한다."""
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = OUTPUT_DIR / "regions_db.json"
+    out_path.write_text(
+        json.dumps(docs, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return out_path

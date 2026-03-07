@@ -1,5 +1,67 @@
 # Changelog
 
+## [Unreleased] — 2026-03-07
+
+### 15. regions collection MongoDB 저장 구현
+
+regions 데이터를 `categories_db`와 동일한 `_id`/`name`/`parent` 구조로 변환하여 MongoDB `regions` collection에 저장하는 기능 추가.
+
+#### 수정 파일
+
+- **`src/transformers/regions.py`**
+  - `transform_regions_db()` — depth1(시/도) + depth2(시/군/구) 데이터를 MongoDB용 flat 문서로 변환
+  - `save_regions_db()` — `output/regions_db.json` 파일 저장
+- **`src/storage/mongodb.py`**
+  - `save_regions_to_mongodb()` — `regions` collection에 `_id` 기준 upsert 저장
+- **`main.py`**
+  - `run_transform_regions()` — `regions_db.json` 변환/저장 추가
+  - `_save_regions_to_mongodb()` — output 파일 기반 MongoDB 저장 래퍼
+  - `run_step1()` — regions MongoDB 저장 호출 추가
+  - `--save-mongodb` — regions 저장도 포함
+
+#### 문서 구조
+
+```json
+{"_id": "region", "name": {"en": "Region", "kr": "지역"}, "parent": null}
+{"_id": "11", "name": {"ko": "서울", "en": "Seoul"}, "parent": "region"}
+{"_id": "11_110", "name": {"ko": "종로구", "en": "Jongno-gu"}, "parent": "11"}
+```
+
+#### 데이터 규모
+
+1 루트 + 17 시/도 + 264 시/군/구 = 총 282개 문서
+
+---
+
+## [Unreleased] — 2026-03-06
+
+### 14. `--force` 병합 시 기존 상세 데이터 손실 버그 수정
+
+**파일:** `src/fetchers/detail_update.py`
+
+`--force`로 이미 상세 처리된 POI를 재수신할 때, `merge_detail_to_poi()`의 시작점이 BASE POI(`pois_{lang}.json`)여서 기존 `pois_details_{lang}.json`에 누적된 상세 데이터(description, intro, info, images 등)가 무시되는 버그 수정.
+
+#### 변경 내용
+
+- 병합 기반을 `poi`(BASE POI) 대신 `details_map.get(poi["id"], poi)`로 변경
+- 기존 상세 데이터가 있으면 그것을 기반으로 새 API 데이터를 덮어써서 기존 데이터 보존
+- API 호출이 부분 실패해도 이전에 누적된 데이터가 손실되지 않음
+
+---
+
+### 13. `--force` 옵션 추가 — Step 3 완료 체크 우회
+
+`--step 3` 실행 시 `--force` 플래그를 추가하면 이미 완료된 POI도 재수신할 수 있도록 개선.
+
+#### 수정 파일
+
+- **`main.py`** — argparse에 `--force` 옵션 추가 (`store_true`), `run_step3()` / `run_fetch_detail_update()`에 `force` 전달
+- **`src/fetchers/detail_update.py`**
+  - `fetch_detail_update()` — `force: bool = False` 파라미터 추가
+  - `_filter_pending_pois()` — `force: bool = False` 파라미터 추가, `force=True`일 때 `updated_ids`를 빈 set으로 설정하여 완료 체크 무시
+
+---
+
 ## [Unreleased] — 2026-03-05
 
 ### 12. detailPetTour2 API 추가 — 반려동물 정보
