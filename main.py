@@ -198,7 +198,7 @@ def _save_pois_to_mongodb(data: dict | None = None) -> None:
 
 
 def _load_pois_from_output() -> dict | None:
-    """output 디렉토리에서 pois/geojson 파일을 로드한다."""
+    """output 디렉토리에서 pois 파일을 로드한다."""
     import json
     from pathlib import Path
 
@@ -207,15 +207,13 @@ def _load_pois_from_output() -> dict | None:
 
     for lang in ("kr", "en"):
         pois_path = output_dir / f"pois_{lang}.json"
-        geo_path = output_dir / f"pois_geo_{lang}.json"
 
-        if not pois_path.exists() or not geo_path.exists():
-            print(f"[MongoDB] {pois_path} 또는 {geo_path} 파일 없음, 건너뜀")
+        if not pois_path.exists():
+            print(f"[MongoDB] {pois_path} 파일 없음, 건너뜀")
             continue
 
         data[lang] = {
             "pois": json.loads(pois_path.read_text(encoding="utf-8")),
-            "geojson": json.loads(geo_path.read_text(encoding="utf-8")),
         }
 
     if not data:
@@ -234,16 +232,37 @@ async def run_step2() -> None:
 
 async def run_fetch_detail_update(
     region: str | None = None, limit: int | None = None, force: bool = False
-) -> dict:
+) -> tuple[dict, dict[str, list[str]]]:
     from src.config import DETAIL_UPDATE_MAX_POIS
     from src.fetchers.detail_update import fetch_detail_update
 
     effective_limit = limit if limit is not None else DETAIL_UPDATE_MAX_POIS
     region_label = region or "전체"
     print(f"[Fetch] POI 상세 업데이트 수신 시작 (지역: {region_label}, 제한: {effective_limit}건)...")
-    data = await fetch_detail_update(region=region, limit=effective_limit, force=force)
+    data, deleted_ids = await fetch_detail_update(region=region, limit=effective_limit, force=force)
     print("[Fetch] POI 상세 업데이트 수신 완료")
-    return data
+    return data, deleted_ids
+
+
+def _delete_pois_from_mongodb(deleted_ids: dict[str, list[str]]) -> None:
+    """삭제된 POI를 MongoDB에서 제거한다."""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    if not os.environ.get("MONGODB_URI"):
+        print("[MongoDB] MONGODB_URI 미설정, MongoDB 삭제 건너뜀")
+        return
+
+    from src.storage.mongodb import delete_pois_from_mongodb
+
+    total = sum(len(ids) for ids in deleted_ids.values())
+    print(f"[MongoDB] 삭제된 POI {total}건 제거 시작...")
+    stats = delete_pois_from_mongodb(deleted_ids)
+    total_deleted = sum(stats.values())
+    print(f"[MongoDB] 삭제 완료: 총 {total_deleted}건 ({stats})")
 
 
 def _save_details_to_mongodb(data: dict | None = None) -> None:
@@ -294,9 +313,11 @@ def _load_details_from_output() -> dict | None:
 
 
 async def run_step3(region: str | None = None, limit: int | None = None, force: bool = False) -> None:
-    """Phase 3: POI 상세 업데이트 수신 + MongoDB 저장"""
-    data = await run_fetch_detail_update(region=region, limit=limit, force=force)
+    """Phase 3: POI 상세 업데이트 수신 + MongoDB 저장 + 삭제된 POI 정리"""
+    data, deleted_ids = await run_fetch_detail_update(region=region, limit=limit, force=force)
     _save_details_to_mongodb(data)
+    if any(deleted_ids.values()):
+        _delete_pois_from_mongodb(deleted_ids)
 
 
 async def main() -> None:

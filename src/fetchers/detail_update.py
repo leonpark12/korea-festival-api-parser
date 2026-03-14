@@ -112,11 +112,12 @@ async def _fetch_detail_for_poi(
     client,
     lang: str,
     poi: dict,
-) -> tuple[dict | None, list[dict] | None, list[dict] | None, list[dict] | None, dict | None]:
+) -> tuple[dict | None, list[dict] | None, list[dict] | None, list[dict] | None, dict | None, bool]:
     """단일 POI에 대해 detailCommon2, detailIntro2, detailInfo2, detailImage2, detailPetTour2를 호출한다.
 
     Returns:
-        (common_item, intro_items, info_items, image_items, pet_item) — 각각 API 응답 또는 None
+        (common_item, intro_items, info_items, image_items, pet_item, had_exception)
+        — 각각 API 응답 또는 None, had_exception은 호출 중 예외 발생 여부
     """
     content_id = poi["id"]
     content_type_id = poi.get("source", {}).get("contentTypeId", "")
@@ -126,6 +127,7 @@ async def _fetch_detail_for_poi(
     info_items = None
     image_items = None
     pet_item = None
+    had_exception = False
 
     # detailCommon2 호출 (공통 파라미터 + contentId만 사용)
     try:
@@ -139,6 +141,7 @@ async def _fetch_detail_for_poi(
             common_item = items[0]
             save_raw(items, "detail_common", lang, content_id)
     except Exception as e:
+        had_exception = True
         print(f"    [경고] detailCommon2 호출 실패 (contentId={content_id}): {e}")
 
     await asyncio.sleep(REQUEST_DELAY)
@@ -154,6 +157,7 @@ async def _fetch_detail_for_poi(
             intro_items = items
             save_raw(items, "detail_intro", lang, content_id)
     except Exception as e:
+        had_exception = True
         print(f"    [경고] detailIntro2 호출 실패 (contentId={content_id}): {e}")
 
     await asyncio.sleep(REQUEST_DELAY)
@@ -169,6 +173,7 @@ async def _fetch_detail_for_poi(
             info_items = items
             save_raw(items, "detail_info", lang, content_id)
     except Exception as e:
+        had_exception = True
         print(f"    [경고] detailInfo2 호출 실패 (contentId={content_id}): {e}")
 
     await asyncio.sleep(REQUEST_DELAY)
@@ -185,6 +190,7 @@ async def _fetch_detail_for_poi(
             image_items = items
             save_raw(items, "detail_image", lang, content_id)
     except Exception as e:
+        had_exception = True
         print(f"    [경고] detailImage2 호출 실패 (contentId={content_id}): {e}")
 
     # detailPetTour2 호출 (반려동물 정보, 한글(kr)만 지원, 첫 번째 항목만 추출)
@@ -201,26 +207,76 @@ async def _fetch_detail_for_poi(
                 pet_item = items[0]
                 save_raw(items, "detail_pet", lang, content_id)
         except Exception as e:
+            had_exception = True
             print(f"    [경고] detailPetTour2 호출 실패 (contentId={content_id}): {e}")
 
-    return common_item, intro_items, info_items, image_items, pet_item
+    return common_item, intro_items, info_items, image_items, pet_item, had_exception
+
+
+def _remove_deleted_pois(lang: str, deleted_ids: list[str]) -> None:
+    """pois_{lang}.json에서 삭제된 POI를 제거하고 재저장한다."""
+    pois = _load_pois(lang)
+    if not pois:
+        return
+
+    deleted_set = set(deleted_ids)
+    filtered = [p for p in pois if p["id"] not in deleted_set]
+    removed_count = len(pois) - len(filtered)
+
+    if removed_count > 0:
+        path = OUTPUT_DIR / f"pois_{lang}.json"
+        path.write_text(
+            json.dumps(filtered, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"[{lang}] pois_{lang}.json에서 {removed_count}건 삭제 → 남은 {len(filtered)}건")
+
+
+def _save_deleted_log(lang: str, deleted_pois: list[dict]) -> None:
+    """삭제된 POI 기록을 pois_deleted_{lang}.json에 누적 저장한다."""
+    from datetime import date
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    path = OUTPUT_DIR / f"pois_deleted_{lang}.json"
+
+    # 기존 삭제 로그 로드
+    existing: list[dict] = []
+    if path.exists():
+        existing = json.loads(path.read_text(encoding="utf-8"))
+
+    today = date.today().isoformat()
+    for poi in deleted_pois:
+        existing.append({
+            "id": poi["id"],
+            "name": poi.get("name", ""),
+            "region": poi.get("region", ""),
+            "deletedAt": today,
+        })
+
+    path.write_text(
+        json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"[{lang}] 삭제 기록 {len(deleted_pois)}건 저장 → {path}")
 
 
 async def fetch_detail_update(
     region: str | None = None,
     limit: int = DETAIL_UPDATE_MAX_POIS,
     force: bool = False,
-) -> dict[str, list[dict]]:
+) -> tuple[dict[str, list[dict]], dict[str, list[str]]]:
     """POI 상세 정보를 수신하여 기존 POI에 병합한다.
 
     Args:
         region: 지역 slug 필터 (None이면 전체)
         limit: 각 언어당 최대 처리 건수
+        force: 완료된 POI도 재수신
 
     Returns:
-        {"kr": [업데이트된 POI 목록], "en": [...]}
+        (result, deleted_ids)
+        - result: {"kr": [업데이트된 POI 목록], "en": [...]}
+        - deleted_ids: {"kr": [삭제된 ID 목록], "en": [...]}
     """
     result: dict[str, list[dict]] = {}
+    deleted_result: dict[str, list[str]] = {"kr": [], "en": []}
 
     print("=" * 50)
     print("POI 상세 업데이트 진행 상황")
@@ -272,6 +328,9 @@ async def fetch_detail_update(
 
             success_count = 0
             newly_updated = []  # 새로 업데이트한 POI만 추적
+            deleted_ids: list[str] = []
+            deleted_pois: list[dict] = []
+
             for idx, poi in enumerate(pending, 1):
                 print(
                     f"  [{lang}] ({idx}/{len(pending)}) "
@@ -279,13 +338,28 @@ async def fetch_detail_update(
                 )
 
                 await asyncio.sleep(REQUEST_DELAY)
-                common, intro_items, info_items, image_items, pet_item = await _fetch_detail_for_poi(
-                    client, lang, poi
+                common, intro_items, info_items, image_items, pet_item, had_exception = (
+                    await _fetch_detail_for_poi(client, lang, poi)
                 )
 
-                # 모두 실패한 경우 스킵
-                if common is None and intro_items is None and info_items is None and image_items is None and pet_item is None:
-                    print(f"    → 스킵 (API 응답 없음)")
+                # 모든 API 응답이 없는 경우
+                all_none = (
+                    common is None
+                    and intro_items is None
+                    and info_items is None
+                    and image_items is None
+                    and pet_item is None
+                )
+
+                if all_none:
+                    if had_exception:
+                        # 네트워크/HTTP 오류로 실패 — 스킵 (삭제 안함)
+                        print(f"    → 스킵 (API 호출 오류)")
+                    else:
+                        # 정상 응답이지만 모든 API에서 데이터 없음 — 삭제된 POI
+                        print(f"    → 삭제 후보 (모든 API 응답 비어있음)")
+                        deleted_ids.append(poi["id"])
+                        deleted_pois.append(poi)
                     continue
 
                 # 병합
@@ -309,6 +383,18 @@ async def fetch_detail_update(
                         f"    [체크포인트] {success_count}건 중간 저장 완료"
                     )
 
+            # 삭제된 POI 정리
+            if deleted_ids:
+                print(f"[{lang}] 삭제된 POI {len(deleted_ids)}건 정리 중...")
+                # details_map에서 삭제 ID 제거
+                for did in deleted_ids:
+                    details_map.pop(did, None)
+                # pois_{lang}.json에서 삭제
+                _remove_deleted_pois(lang, deleted_ids)
+                # 삭제 로그 기록
+                _save_deleted_log(lang, deleted_pois)
+                deleted_result[lang] = deleted_ids
+
             # 최종 저장
             final_list = list(details_map.values())
             path = _save_details(lang, final_list)
@@ -317,6 +403,8 @@ async def fetch_detail_update(
                 f"[{lang}] 완료: {success_count}건 업데이트, "
                 f"총 {len(final_list)}건 저장 → {path}"
             )
+            if deleted_ids:
+                print(f"[{lang}] 삭제: {len(deleted_ids)}건")
 
     print("=" * 50)
-    return result
+    return result, deleted_result

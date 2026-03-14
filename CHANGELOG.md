@@ -1,5 +1,45 @@
 # Changelog
 
+## [Unreleased] — 2026-03-14
+
+### 18. 삭제된 POI 정리 + pois_geo MongoDB 로직 제거
+
+#### Part A: pois_geo MongoDB 로직 제거
+
+사용하지 않는 `pois_geo_kr`, `pois_geo_en` MongoDB 컬렉션 저장 로직을 완전히 제거.
+
+##### 수정 파일
+
+- **`src/storage/mongodb.py`**
+  - `save_pois_to_mongodb()`: pois_geo 저장 블록 삭제, docstring에서 pois_geo 관련 설명 제거
+  - 입력 구조 변경: `data[lang] = {"pois": [...]}` (geojson 키 제거)
+- **`main.py`**
+  - `_load_pois_from_output()`: `geo_path` 로드 로직 제거, `geojson` 키 제거
+
+#### Part B: 삭제된 POI 정리 기능
+
+Step 3에서 5개 API 모두 정상 응답이지만 데이터가 없는 POI를 삭제된 데이터로 판단하여 JSON/MongoDB에서 제거.
+
+- **네트워크 오류 vs 삭제 구분**: `had_exception` 플래그로 구분
+  - 예외 발생 → "API 호출 오류" 스킵 (삭제 안함)
+  - 정상 응답 + 빈 데이터 → 삭제 후보로 수집
+
+##### 수정 파일
+
+- **`src/fetchers/detail_update.py`**
+  - `_fetch_detail_for_poi()`: 반환값 5-tuple → 6-tuple (`had_exception` 추가)
+  - `fetch_detail_update()`: 삭제 후보 수집, 반환값 `(result, deleted_ids)` tuple로 변경
+  - `_remove_deleted_pois()`: `pois_{lang}.json`에서 삭제 ID 제거 후 재저장
+  - `_save_deleted_log()`: `pois_deleted_{lang}.json`에 삭제 기록 누적 저장
+- **`src/storage/mongodb.py`**
+  - `delete_pois_from_mongodb()` 추가: `pois_kr`, `pois_en`에서 `delete_many` 수행, 재시도 로직 포함
+- **`main.py`**
+  - `run_fetch_detail_update()`: 반환값 `(data, deleted_ids)` 언패킹
+  - `_delete_pois_from_mongodb()`: MongoDB 삭제 래퍼 함수 추가
+  - `run_step3()`: 삭제된 POI가 있으면 MongoDB에서도 제거
+
+---
+
 ## [Unreleased] — 2026-03-12
 
 ### 17. Step 3 최대 POI 수 1000 → 5000 확대
