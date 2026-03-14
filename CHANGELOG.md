@@ -2,6 +2,16 @@
 
 ## [Unreleased] — 2026-03-14
 
+### 27. festival-daily 워크플로우 카테고리 데이터 선행 수신 추가
+
+Step 5 실행 시 `build_category_map()`이 `output/categories.json`을 필요로 하지만, GitHub Actions 환경에는 이 파일이 존재하지 않아 `FileNotFoundError` 발생. Step 5 실행 전에 `--fetch category_code`로 카테고리 데이터를 먼저 수신하도록 추가.
+
+#### 수정 파일
+
+- **`.github/workflows/festival-daily.yml`** — Step 5 실행 전 `카테고리 데이터 수신` 단계 추가
+
+---
+
 ### 26. astral-sh/setup-uv v6 → v7 업그레이드
 
 GitHub Actions에서 `astral-sh/setup-uv@v6`가 Node.js 20 기반이라 deprecation 경고가 발생하여, Node.js 24를 지원하는 `@v7`로 업그레이드.
