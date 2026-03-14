@@ -49,4 +49,4 @@ ENDPOINTS = {
 }
 
 REQUEST_DELAY = 0.3  # 요청 간 대기 시간 (초)
-DETAIL_UPDATE_MAX_POIS = 1000  # 각 언어당 기본 최대 POI 수 (API별 1000건/일/언어)
+DETAIL_UPDATE_MAX_POIS = 5000  # 각 언어당 기본 최대 POI 수 (API별 5000건/일/언어)

@@ -118,7 +118,8 @@ def merge_detail_to_poi(
         first_small = image_items[0].get("smallimageurl", "")
         if first_small:
             updated["thumbnail"] = _normalize_url(first_small)
-        updated["detailImageUpdated"] = True
+    # API 호출 완료 표시 (이미지가 없는 POI도 완료로 처리)
+    updated["detailImageUpdated"] = True
 
     # detailPetTour2 → pet (단일 객체, 한글만 지원)
     if pet_item is not None:
