@@ -108,12 +108,20 @@ def _print_progress(lang: str, total: int, done: int, batch: int) -> None:
     )
 
 
-async def _fetch_detail_for_poi(
+async def fetch_detail_for_poi(
     client,
     lang: str,
     poi: dict,
+    *,
+    save_raw_data: bool = True,
 ) -> tuple[dict | None, list[dict] | None, list[dict] | None, list[dict] | None, dict | None, bool]:
     """단일 POI에 대해 detailCommon2, detailIntro2, detailInfo2, detailImage2, detailPetTour2를 호출한다.
+
+    Args:
+        client: httpx AsyncClient
+        lang: 언어 코드 (kr/en)
+        poi: POI 문서
+        save_raw_data: True이면 raw/ 디렉토리에 원본 응답 저장 (기본값: True)
 
     Returns:
         (common_item, intro_items, info_items, image_items, pet_item, had_exception)
@@ -139,7 +147,8 @@ async def _fetch_detail_for_poi(
         )
         if items:
             common_item = items[0]
-            save_raw(items, "detail_common", lang, content_id)
+            if save_raw_data:
+                save_raw(items, "detail_common", lang, content_id)
     except Exception as e:
         had_exception = True
         print(f"    [경고] detailCommon2 호출 실패 (contentId={content_id}): {e}")
@@ -155,7 +164,8 @@ async def _fetch_detail_for_poi(
         items = await fetch_single(client, url, params)
         if items:
             intro_items = items
-            save_raw(items, "detail_intro", lang, content_id)
+            if save_raw_data:
+                save_raw(items, "detail_intro", lang, content_id)
     except Exception as e:
         had_exception = True
         print(f"    [경고] detailIntro2 호출 실패 (contentId={content_id}): {e}")
@@ -171,7 +181,8 @@ async def _fetch_detail_for_poi(
         items = await fetch_single(client, url, params)
         if items:
             info_items = items
-            save_raw(items, "detail_info", lang, content_id)
+            if save_raw_data:
+                save_raw(items, "detail_info", lang, content_id)
     except Exception as e:
         had_exception = True
         print(f"    [경고] detailInfo2 호출 실패 (contentId={content_id}): {e}")
@@ -188,7 +199,8 @@ async def _fetch_detail_for_poi(
         )
         if items:
             image_items = items
-            save_raw(items, "detail_image", lang, content_id)
+            if save_raw_data:
+                save_raw(items, "detail_image", lang, content_id)
     except Exception as e:
         had_exception = True
         print(f"    [경고] detailImage2 호출 실패 (contentId={content_id}): {e}")
@@ -205,7 +217,8 @@ async def _fetch_detail_for_poi(
             )
             if items:
                 pet_item = items[0]
-                save_raw(items, "detail_pet", lang, content_id)
+                if save_raw_data:
+                    save_raw(items, "detail_pet", lang, content_id)
         except Exception as e:
             had_exception = True
             print(f"    [경고] detailPetTour2 호출 실패 (contentId={content_id}): {e}")
@@ -339,7 +352,7 @@ async def fetch_detail_update(
 
                 await asyncio.sleep(REQUEST_DELAY)
                 common, intro_items, info_items, image_items, pet_item, had_exception = (
-                    await _fetch_detail_for_poi(client, lang, poi)
+                    await fetch_detail_for_poi(client, lang, poi)
                 )
 
                 # 모든 API 응답이 없는 경우

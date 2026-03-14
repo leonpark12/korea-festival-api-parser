@@ -60,7 +60,7 @@ EXCLUDE_LCLS3_KR: list[str] = ["SH040300", "FD010100", "AC030300", "AC030400", "
 EXCLUDE_LCLS3_EN: list[str] = ["SH040300", "FD010100", "AC030300", "AC030400", "AC040100", "AC050100", "AC050200", "AC050300", "AC050400", "AC060100", "EX060100", "EX060200", "EX060300", "EX060400", "EX060500", "EX060600", "EX060700", "EX060800", "EX060900", "EX061000", "FD030100", "FD030200", "FD030300", "FD030400", "FD030500", "FD030600", "FD040100", "FD040200", "FD040300", "FD040400", "FD040500", "FD050100", "FD050200", "FD050300", "NA010500", "NA020100", "NA020200", "NA020300", "NA020400", "NA020500", "NA020600", "NA020700", "SH050100", "SH050200", "VE010300", "VE010400", "VE010500", "VE010600", "VE010700", "VE010800", "VE010900", "VE030100", "VE030200", "VE030300", "VE030400", "VE030500", "VE060200", "VE080600", "VE090100", "VE090200", "VE090300", "VE090400", "VE090500", "VE090600", "VE100100", "VE100200", "VE110100", "VE110200", "VE110300", "VE110400", "VE110500", "VE110600", "VE120100", "VE120200", "VE120300"]  # 예: ["SH040300", "FD010100"]
 
 
-def _build_category_map() -> dict[str, dict[str, str]]:
+def build_category_map() -> dict[str, dict[str, str]]:
     """categories.json을 읽어 {code: {"ko": name, "en": name}} 딕셔너리 생성."""
     cat_path = OUTPUT_DIR / "categories.json"
     categories = json.loads(cat_path.read_text(encoding="utf-8"))
@@ -100,7 +100,7 @@ def _format_date(raw: str) -> str:
     return f"{raw[:4]}-{raw[4:6]}-{raw[6:8]}"
 
 
-def _transform_item(item: dict, lang: str, category_map: dict) -> dict:
+def transform_item(item: dict, lang: str, category_map: dict) -> dict:
     """단일 항목을 POI 포맷으로 변환한다.
 
     Args:
@@ -207,7 +207,7 @@ def transform_pois() -> dict[str, dict]:
     Returns:
         {"kr": {"pois": [...], "geojson": {...}}, "en": {...}}
     """
-    category_map = _build_category_map()
+    category_map = build_category_map()
 
     result: dict[str, dict] = {}
     for lang in ("kr", "en"):
@@ -224,7 +224,7 @@ def transform_pois() -> dict[str, dict]:
         pois = []
         excluded = []
         for item in items:
-            transformed = _transform_item(item, lang_key, category_map)
+            transformed = transform_item(item, lang_key, category_map)
             if item.get("lclsSystm3", "") in exclude_codes:
                 excluded.append(transformed)
             else:

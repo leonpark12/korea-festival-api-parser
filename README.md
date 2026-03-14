@@ -61,6 +61,18 @@ uv run python main.py --step 3 --region incheon --limit 100
 
 # Step 3: 완료된 POI도 재수신 (--force)
 uv run python main.py --step 3 --force --region incheon
+
+# Step 4: 관광정보 동기화 (증분 업데이트, 기본: 2일 전 수정분)
+uv run python main.py --step 4
+
+# Step 4: 특정 날짜 기준 동기화
+uv run python main.py --step 4 --modifiedtime 20260312
+
+# Step 5: 행사정보조회 (기본: 7일 전 ~ 3개월 후)
+uv run python main.py --step 5
+
+# Step 5: 특정 기간 행사정보
+uv run python main.py --step 5 --eventStartDate 20260301 --eventEndDate 20260630
 ```
 
 ### 개별 fetcher 실행
@@ -71,6 +83,10 @@ uv run python main.py --fetch category_code   # 분류체계 코드만 수신
 uv run python main.py --fetch area_based      # 지역기반 관광정보만 수신
 uv run python main.py --fetch detail_update   # POI 상세 업데이트만 수신 (MongoDB 저장 없이)
 uv run python main.py --fetch detail_update --region incheon  # 지역 필터
+uv run python main.py --fetch sync_update    # 동기화 수신만 (MongoDB 저장 없이)
+uv run python main.py --fetch sync_update --modifiedtime 20260312  # 특정 날짜
+uv run python main.py --fetch festival       # 행사정보 수신만 (MongoDB 저장 없이)
+uv run python main.py --fetch festival --eventStartDate 20260301 --eventEndDate 20260630  # 특정 기간
 ```
 
 ### 변환만 실행 (raw 데이터 필요)
@@ -103,7 +119,9 @@ korea-festival-api-parser/
 │   │   ├── ldong_code.py           # 행정구역(법정동) 코드
 │   │   ├── category_code.py        # 관광 분류체계 코드 (3-depth)
 │   │   ├── area_based.py           # 지역기반 관광정보 (totalCount 기반 전체 페이지 순회)
-│   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2) + 삭제된 POI 정리
+│   │   ├── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2) + 삭제된 POI 정리
+│   │   ├── sync_update.py         # 관광정보 증분 동기화 (areaBasedSyncList2 기반)
+│   │   └── festival.py           # 행사정보조회 (searchFestival2 기반)
 │   ├── transformers/               # 데이터 변환
 │   │   ├── categories.py           # 분류체계 → categories.json + categories_db.json
 │   │   ├── regions.py              # 행정구역 → regions.json + regions_db.json
@@ -127,6 +145,8 @@ data.go.kr API
       │  Step 1: depth1~3 코드를 언어별(kr/en) 수신
       │  Step 2: areaBasedList2 — totalCount 기반 전체 페이지 순회
       │  Step 3: detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2(kr만) — POI별 상세 정보 수신
+      │  Step 4: areaBasedSyncList2 — modifiedtime 기반 증분 동기화 (수정/삭제)
+      │  Step 5: searchFestival2 — 행사정보 전량 교체 (EV 타입 삭제 후 upsert)
       │  raw/{category}/{lang}/*.json 저장
       ▼
   Transformers (변환)
@@ -315,6 +335,25 @@ POI 상세 업데이트 결과를 증분 누적하여 저장합니다. 기존 `p
 | `regions` | `_id` | 행정구역 document (루트 + 시/도 + 시/군/구) |
 | `pois_kr` | `id` | POI document |
 | `pois_en` | `id` | POI document |
+| `updated_content` | — (insert) | 동기화 이력 (Step 4) |
+
+## GitHub Actions 자동 동기화
+
+### Step 4: 관광정보 동기화
+
+`.github/workflows/sync-daily.yml`을 통해 매일 KST 05:00 (UTC 20:00)에 Step 4가 자동 실행됩니다.
+
+수동 실행도 가능합니다 (Actions → 관광정보 동기화 → Run workflow).
+
+### Step 5: 행사정보 동기화
+
+`.github/workflows/festival-daily.yml`을 통해 매일 KST 06:00 (UTC 21:00)에 Step 5가 자동 실행됩니다.
+
+수동 실행 시 `eventStartDate`, `eventEndDate`를 입력할 수 있습니다 (Actions → 행사정보 일일 동기화 → Run workflow).
+
+**필요한 GitHub Secrets:**
+- `DATA_GO_KR_API_KEY` — 공공데이터포털 API 키
+- `MONGODB_URI` — MongoDB 연결 URI
 
 ## 의존성
 
