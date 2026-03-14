@@ -2,6 +2,17 @@
 
 ## [Unreleased] — 2026-03-14
 
+### 26. astral-sh/setup-uv v6 → v7 업그레이드
+
+GitHub Actions에서 `astral-sh/setup-uv@v6`가 Node.js 20 기반이라 deprecation 경고가 발생하여, Node.js 24를 지원하는 `@v7`로 업그레이드.
+
+#### 수정 파일
+
+- **`.github/workflows/sync-daily.yml`** — `astral-sh/setup-uv@v6` → `@v7`
+- **`.github/workflows/festival-daily.yml`** — `astral-sh/setup-uv@v6` → `@v7`
+
+---
+
 ### 25. Step 5: 행사정보조회 (searchFestival2) 구현
 
 `searchFestival2` API를 통해 행사/축제 데이터를 수집하여 기존 EV 타입 문서를 전량 교체하는 기능 추가. GitHub Actions로 매일 KST 06:00에 자동 실행.
