@@ -103,7 +103,7 @@ korea-festival-api-parser/
 │   │   ├── ldong_code.py           # 행정구역(법정동) 코드
 │   │   ├── category_code.py        # 관광 분류체계 코드 (3-depth)
 │   │   ├── area_based.py           # 지역기반 관광정보 (totalCount 기반 전체 페이지 순회)
-│   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2)
+│   │   └── detail_update.py        # POI 상세 업데이트 (detailCommon2 + detailIntro2 + detailInfo2 + detailImage2 + detailPetTour2) + 삭제된 POI 정리
 │   ├── transformers/               # 데이터 변환
 │   │   ├── categories.py           # 분류체계 → categories.json + categories_db.json
 │   │   ├── regions.py              # 행정구역 → regions.json + regions_db.json
@@ -136,10 +136,10 @@ data.go.kr API
   Output JSON
       │  pois_{lang}.json       — 기본 POI 데이터
       │  pois_details_{lang}.json — 상세 업데이트된 POI (증분 누적)
+      │  pois_deleted_{lang}.json — 삭제된 POI 기록 (누적)
       ▼
   MongoDB (선택)
-      │  pois_kr, pois_en: id 기준 upsert (기본) + $set 부분 업데이트 (상세)
-      │  pois_geo_kr, pois_geo_en: properties.id 기준 upsert
+      │  pois_kr, pois_en: id 기준 upsert (기본) + $set 부분 업데이트 (상세) + 삭제된 POI 제거
       ▼
   MongoDB Collections
 ```
@@ -315,8 +315,6 @@ POI 상세 업데이트 결과를 증분 누적하여 저장합니다. 기존 `p
 | `regions` | `_id` | 행정구역 document (루트 + 시/도 + 시/군/구) |
 | `pois_kr` | `id` | POI document |
 | `pois_en` | `id` | POI document |
-| `pois_geo_kr` | `id` (properties.id 추출) | GeoJSON Feature document |
-| `pois_geo_en` | `id` (properties.id 추출) | GeoJSON Feature document |
 
 ## 의존성
 

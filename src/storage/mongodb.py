@@ -148,20 +148,18 @@ def save_regions_to_mongodb(
 
 
 def save_pois_to_mongodb(data: dict[str, dict], db_name: str = "korea_tourism") -> dict[str, int]:
-    """pois, geojson 데이터를 MongoDB에 upsert 저장한다.
+    """pois 데이터를 MongoDB에 upsert 저장한다.
 
     컬렉션 매핑:
         - pois_kr: data["kr"]["pois"] → id 기준 upsert
         - pois_en: data["en"]["pois"] → id 기준 upsert
-        - pois_geo_kr: data["kr"]["geojson"]["features"] → properties.id 기준 upsert
-        - pois_geo_en: data["en"]["geojson"]["features"] → properties.id 기준 upsert
 
     Args:
-        data: transform_pois()의 반환값 {"kr": {"pois": [...], "geojson": {...}}, "en": {...}}
+        data: {"kr": {"pois": [...]}, "en": {"pois": [...]}}
         db_name: MongoDB 데이터베이스 이름
 
     Returns:
-        컬렉션별 upsert 건수 {"pois_kr": N, "pois_en": N, ...}
+        컬렉션별 upsert 건수 {"pois_kr": N, "pois_en": N}
     """
     client = _get_client()
     db = client[db_name]
@@ -184,22 +182,49 @@ def save_pois_to_mongodb(data: dict[str, dict], db_name: str = "korea_tourism") 
                 count = _bulk_write_batched(db[col_name], ops)
                 stats[col_name] = count
                 print(f"  [MongoDB] {col_name}: {count}건 upsert 완료")
+    finally:
+        client.close()
 
-            # pois_geo_{lang}: features 개별 저장, properties.id → id 기준 upsert
-            features = data[lang]["geojson"].get("features", [])
-            if features:
-                col_name = f"pois_geo_{lang}"
-                ops = []
-                for feature in features:
-                    doc = dict(feature)
-                    doc["id"] = feature["properties"]["id"]
-                    ops.append(
-                        UpdateOne({"id": doc["id"]}, {"$set": doc}, upsert=True)
-                    )
-                print(f"  [MongoDB] {col_name}: {len(ops)}건 저장 시작...")
-                count = _bulk_write_batched(db[col_name], ops)
-                stats[col_name] = count
-                print(f"  [MongoDB] {col_name}: {count}건 upsert 완료")
+    return stats
+
+
+def delete_pois_from_mongodb(
+    deleted_ids: dict[str, list[str]], db_name: str = "korea_tourism"
+) -> dict[str, int]:
+    """삭제된 POI를 MongoDB에서 제거한다.
+
+    대상 컬렉션: pois_kr, pois_en
+
+    Args:
+        deleted_ids: {"kr": [삭제할 ID 목록], "en": [...]}
+        db_name: MongoDB 데이터베이스 이름
+
+    Returns:
+        컬렉션별 삭제 건수 {"pois_kr": N, "pois_en": N}
+    """
+    client = _get_client()
+    db = client[db_name]
+    stats: dict[str, int] = {}
+
+    try:
+        for lang in ("kr", "en"):
+            ids = deleted_ids.get(lang, [])
+            if not ids:
+                continue
+
+            col_name = f"pois_{lang}"
+            for attempt in range(1, MAX_RETRIES + 1):
+                try:
+                    result = db[col_name].delete_many({"id": {"$in": ids}})
+                    stats[col_name] = result.deleted_count
+                    print(f"  [MongoDB] {col_name}: {result.deleted_count}건 삭제 완료")
+                    break
+                except AutoReconnect as e:
+                    if attempt == MAX_RETRIES:
+                        raise
+                    wait = BATCH_DELAY * attempt * 2
+                    print(f"    연결 끊김, {wait:.0f}초 후 재시도 ({attempt}/{MAX_RETRIES})...")
+                    time.sleep(wait)
     finally:
         client.close()
 
