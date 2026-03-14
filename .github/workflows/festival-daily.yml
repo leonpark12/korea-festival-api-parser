@@ -22,10 +22,6 @@ jobs:
           python-version: '3.11'
       - uses: astral-sh/setup-uv@v7
       - run: uv sync
-      - name: 카테고리 데이터 수신
-        env:
-          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
-        run: uv run python main.py --fetch category_code
       - name: Step 5 실행
         env:
           DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}

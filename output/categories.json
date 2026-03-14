@@ -1,0 +1,2338 @@
+[
+  {
+    "code": "AC",
+    "name": {
+      "ko": "숙박",
+      "en": "Accommodation"
+    },
+    "list": [
+      {
+        "code": "AC01",
+        "name": {
+          "ko": "호텔",
+          "en": "Hotels"
+        },
+        "list": [
+          {
+            "code": "AC010100",
+            "name": {
+              "ko": "호텔",
+              "en": "Hotels"
+            }
+          }
+        ]
+      },
+      {
+        "code": "AC02",
+        "name": {
+          "ko": "콘도미니엄",
+          "en": "Condominiums"
+        },
+        "list": [
+          {
+            "code": "AC020100",
+            "name": {
+              "ko": "콘도",
+              "en": "Condominiums"
+            }
+          },
+          {
+            "code": "AC020200",
+            "name": {
+              "ko": "레지던스",
+              "en": "Serviced Residences"
+            }
+          }
+        ]
+      },
+      {
+        "code": "AC03",
+        "name": {
+          "ko": "펜션/민박",
+          "en": "Pensions / Guesthouses"
+        },
+        "list": [
+          {
+            "code": "AC030100",
+            "name": {
+              "ko": "펜션",
+              "en": "Pensions"
+            }
+          },
+          {
+            "code": "AC030200",
+            "name": {
+              "ko": "한옥스테이",
+              "en": "Hanok Stays (Traditional Korean House)"
+            }
+          },
+          {
+            "code": "AC030300",
+            "name": {
+              "ko": "농어촌민박",
+              "en": "Rural Homestays"
+            }
+          },
+          {
+            "code": "AC030400",
+            "name": {
+              "ko": "홈스테이",
+              "en": "Homestays"
+            }
+          }
+        ]
+      },
+      {
+        "code": "AC04",
+        "name": {
+          "ko": "모텔",
+          "en": "Motels "
+        },
+        "list": [
+          {
+            "code": "AC040100",
+            "name": {
+              "ko": "모텔",
+              "en": "Motels"
+            }
+          }
+        ]
+      },
+      {
+        "code": "AC05",
+        "name": {
+          "ko": "캠핑",
+          "en": "Camping"
+        },
+        "list": [
+          {
+            "code": "AC050100",
+            "name": {
+              "ko": "일반야영장",
+              "en": "General Camping Sites"
+            }
+          },
+          {
+            "code": "AC050200",
+            "name": {
+              "ko": "오토캠핑장",
+              "en": "Auto Camping Sites"
+            }
+          },
+          {
+            "code": "AC050300",
+            "name": {
+              "ko": "카라반",
+              "en": "Caravans"
+            }
+          },
+          {
+            "code": "AC050400",
+            "name": {
+              "ko": "글램핑장",
+              "en": "Glamping Sites"
+            }
+          }
+        ]
+      },
+      {
+        "code": "AC06",
+        "name": {
+          "ko": "호스텔",
+          "en": "Hostels"
+        },
+        "list": [
+          {
+            "code": "AC060100",
+            "name": {
+              "ko": "유스호스텔",
+              "en": "Youth Hostels"
+            }
+          },
+          {
+            "code": "AC060200",
+            "name": {
+              "ko": "게스트하우스",
+              "en": "Guesthouses"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "C01",
+    "name": {
+      "ko": "추천코스",
+      "en": "C01"
+    },
+    "list": [
+      {
+        "code": "C0112",
+        "name": {
+          "ko": "가족코스",
+          "en": "C0112"
+        },
+        "list": [
+          {
+            "code": "C01120001",
+            "name": {
+              "ko": "가족코스",
+              "en": "C01120001"
+            }
+          }
+        ]
+      },
+      {
+        "code": "C0113",
+        "name": {
+          "ko": "나홀로코스",
+          "en": "C0113"
+        },
+        "list": [
+          {
+            "code": "C01130001",
+            "name": {
+              "ko": "나홀로코스",
+              "en": "C01130001"
+            }
+          }
+        ]
+      },
+      {
+        "code": "C0114",
+        "name": {
+          "ko": "힐링코스",
+          "en": "C0114"
+        },
+        "list": [
+          {
+            "code": "C01140001",
+            "name": {
+              "ko": "힐링코스",
+              "en": "C01140001"
+            }
+          }
+        ]
+      },
+      {
+        "code": "C0115",
+        "name": {
+          "ko": "도보코스",
+          "en": "C0115"
+        },
+        "list": [
+          {
+            "code": "C01150001",
+            "name": {
+              "ko": "도보코스",
+              "en": "C01150001"
+            }
+          }
+        ]
+      },
+      {
+        "code": "C0116",
+        "name": {
+          "ko": "캠핑코스",
+          "en": "C0116"
+        },
+        "list": [
+          {
+            "code": "C01160001",
+            "name": {
+              "ko": "캠핑코스",
+              "en": "C01160001"
+            }
+          }
+        ]
+      },
+      {
+        "code": "C0117",
+        "name": {
+          "ko": "맛코스",
+          "en": "C0117"
+        },
+        "list": [
+          {
+            "code": "C01170001",
+            "name": {
+              "ko": "맛코스",
+              "en": "C01170001"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "EV",
+    "name": {
+      "ko": "축제/공연/행사",
+      "en": "Festivals/Performances/Events"
+    },
+    "list": [
+      {
+        "code": "EV01",
+        "name": {
+          "ko": "축제",
+          "en": "Festivals"
+        },
+        "list": [
+          {
+            "code": "EV010100",
+            "name": {
+              "ko": "문화관광축제",
+              "en": "Cultural Tourism Festivals"
+            }
+          },
+          {
+            "code": "EV010200",
+            "name": {
+              "ko": "문화예술축제",
+              "en": "Cultural and Artistic Festivals"
+            }
+          },
+          {
+            "code": "EV010300",
+            "name": {
+              "ko": "지역특산물축제",
+              "en": "Local Specialty Festivals"
+            }
+          },
+          {
+            "code": "EV010400",
+            "name": {
+              "ko": "전통역사축제",
+              "en": "Traditional History Festivals"
+            }
+          },
+          {
+            "code": "EV010500",
+            "name": {
+              "ko": "생태자연축제",
+              "en": "Ecological Nature Festivals"
+            }
+          },
+          {
+            "code": "EV010600",
+            "name": {
+              "ko": "기타축제",
+              "en": "Other Festivals"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EV02",
+        "name": {
+          "ko": "공연",
+          "en": "Performances"
+        },
+        "list": [
+          {
+            "code": "EV020100",
+            "name": {
+              "ko": "전통공연",
+              "en": "Traditional Performance"
+            }
+          },
+          {
+            "code": "EV020200",
+            "name": {
+              "ko": "연극",
+              "en": "Theaters"
+            }
+          },
+          {
+            "code": "EV020300",
+            "name": {
+              "ko": "뮤지컬",
+              "en": "Musicals"
+            }
+          },
+          {
+            "code": "EV020400",
+            "name": {
+              "ko": "오페라",
+              "en": "Opera"
+            }
+          },
+          {
+            "code": "EV020500",
+            "name": {
+              "ko": "무용",
+              "en": "Dance Performances"
+            }
+          },
+          {
+            "code": "EV020600",
+            "name": {
+              "ko": "클래식음악회",
+              "en": "Classical Music Concerts"
+            }
+          },
+          {
+            "code": "EV020700",
+            "name": {
+              "ko": "대중콘서트",
+              "en": "Pop Concerts"
+            }
+          },
+          {
+            "code": "EV020800",
+            "name": {
+              "ko": "영화",
+              "en": "Movie / Film"
+            }
+          },
+          {
+            "code": "EV020900",
+            "name": {
+              "ko": "기타공연",
+              "en": "Other Performances"
+            }
+          },
+          {
+            "code": "EV021000",
+            "name": {
+              "ko": "넌버벌",
+              "en": "Non-verbal Performances"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EV03",
+        "name": {
+          "ko": "행사",
+          "en": "Events"
+        },
+        "list": [
+          {
+            "code": "EV030100",
+            "name": {
+              "ko": "전시회",
+              "en": "Exhibitions"
+            }
+          },
+          {
+            "code": "EV030200",
+            "name": {
+              "ko": "박람회",
+              "en": "Expos"
+            }
+          },
+          {
+            "code": "EV030300",
+            "name": {
+              "ko": "스포츠경기",
+              "en": "Sporting Events"
+            }
+          },
+          {
+            "code": "EV030400",
+            "name": {
+              "ko": "기타행사",
+              "en": "Other Events"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "EX",
+    "name": {
+      "ko": "체험관광",
+      "en": "Experiential Tourism"
+    },
+    "list": [
+      {
+        "code": "EX01",
+        "name": {
+          "ko": "전통체험",
+          "en": "Traditional Experiences"
+        },
+        "list": [
+          {
+            "code": "EX010100",
+            "name": {
+              "ko": "전통문화체험",
+              "en": "Traditional Cultural Experiences"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EX02",
+        "name": {
+          "ko": "공예체험",
+          "en": "Craft Experiences"
+        },
+        "list": [
+          {
+            "code": "EX020100",
+            "name": {
+              "ko": "금속공예체험",
+              "en": "Metal Craft Experiences"
+            }
+          },
+          {
+            "code": "EX020200",
+            "name": {
+              "ko": "유리공예체험",
+              "en": "Glass Craft Experiences"
+            }
+          },
+          {
+            "code": "EX020300",
+            "name": {
+              "ko": "가죽공예체험",
+              "en": "Leather Craft Experiences"
+            }
+          },
+          {
+            "code": "EX020400",
+            "name": {
+              "ko": "기타공예체험",
+              "en": "Other Craft Experiences"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EX03",
+        "name": {
+          "ko": "농.산.어촌 체험",
+          "en": "Farming"
+        },
+        "list": [
+          {
+            "code": "EX030100",
+            "name": {
+              "ko": "체험마을",
+              "en": "Experience Villages"
+            }
+          },
+          {
+            "code": "EX030200",
+            "name": {
+              "ko": "체험목장",
+              "en": "Experience Ranches"
+            }
+          },
+          {
+            "code": "EX030300",
+            "name": {
+              "ko": "체험농장",
+              "en": "Experience Farms"
+            }
+          },
+          {
+            "code": "EX030400",
+            "name": {
+              "ko": "체험어장",
+              "en": "Fishing Experience Sites"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EX04",
+        "name": {
+          "ko": "산사체험",
+          "en": "Temple Stay Experiences"
+        },
+        "list": [
+          {
+            "code": "EX040100",
+            "name": {
+              "ko": "템플스테이",
+              "en": "Temple Stay"
+            }
+          },
+          {
+            "code": "EX040200",
+            "name": {
+              "ko": "사찰문화체험",
+              "en": "Temple Culture Experiences"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EX05",
+        "name": {
+          "ko": "웰니스관광",
+          "en": "Wellness Tourism"
+        },
+        "list": [
+          {
+            "code": "EX050100",
+            "name": {
+              "ko": "온천 / 사우나 / 스파",
+              "en": "Hot Springs/Sauna/Spa"
+            }
+          },
+          {
+            "code": "EX050200",
+            "name": {
+              "ko": "찜질방",
+              "en": "Korean Sauna (Jjimjilbang)"
+            }
+          },
+          {
+            "code": "EX050300",
+            "name": {
+              "ko": "한방체험",
+              "en": "Korean Traditional Medicine Experience"
+            }
+          },
+          {
+            "code": "EX050400",
+            "name": {
+              "ko": "힐링명상",
+              "en": "Healing/Meditation"
+            }
+          },
+          {
+            "code": "EX050500",
+            "name": {
+              "ko": "뷰티스파",
+              "en": "Beauty Spa"
+            }
+          },
+          {
+            "code": "EX050600",
+            "name": {
+              "ko": "기타웰니스",
+              "en": "Other Wellness Tourism Sites"
+            }
+          },
+          {
+            "code": "EX050700",
+            "name": {
+              "ko": "자연치유",
+              "en": "Natural Healing"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EX06",
+        "name": {
+          "ko": "산업관광",
+          "en": "Industrial Tourism"
+        },
+        "list": [
+          {
+            "code": "EX060100",
+            "name": {
+              "ko": "근대산업유산",
+              "en": "Modern Industrial Heritage"
+            }
+          },
+          {
+            "code": "EX060200",
+            "name": {
+              "ko": "게임 등 첨단IT산업",
+              "en": "Game and Advanced IT"
+            }
+          },
+          {
+            "code": "EX060300",
+            "name": {
+              "ko": "전통/향토산업",
+              "en": "Traditional / Local"
+            }
+          },
+          {
+            "code": "EX060400",
+            "name": {
+              "ko": "문화콘텐츠산업",
+              "en": "Cultural Content"
+            }
+          },
+          {
+            "code": "EX060500",
+            "name": {
+              "ko": "장수기업/산업테마거리",
+              "en": "Long-standing Companies / Industry-themed Streets"
+            }
+          },
+          {
+            "code": "EX060600",
+            "name": {
+              "ko": "자동차/조선/철강 등",
+              "en": "Automobile / Shipbuilding / Steel"
+            }
+          },
+          {
+            "code": "EX060700",
+            "name": {
+              "ko": "로봇/항공우주산업",
+              "en": "Robotics / Aerospace"
+            }
+          },
+          {
+            "code": "EX060800",
+            "name": {
+              "ko": "화장품/주류/먹거리",
+              "en": "Cosmetics / Alcohol / Food"
+            }
+          },
+          {
+            "code": "EX060900",
+            "name": {
+              "ko": "친환경/신재생에너지",
+              "en": "Eco-friendly / Renewable Energy"
+            }
+          },
+          {
+            "code": "EX061000",
+            "name": {
+              "ko": "기타산업관광지",
+              "en": "Other Industrial Tourism Sites"
+            }
+          }
+        ]
+      },
+      {
+        "code": "EX07",
+        "name": {
+          "ko": "기타체험",
+          "en": "Other Experiences"
+        },
+        "list": [
+          {
+            "code": "EX070100",
+            "name": {
+              "ko": "유람선/잠수함관광",
+              "en": "Cruise / Submarine Experiences"
+            }
+          },
+          {
+            "code": "EX070200",
+            "name": {
+              "ko": "기타체험관광",
+              "en": "Other Experiential Tourism Activities"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "FD",
+    "name": {
+      "ko": "음식",
+      "en": "Food"
+    },
+    "list": [
+      {
+        "code": "FD01",
+        "name": {
+          "ko": "한식",
+          "en": "Korean Food"
+        },
+        "list": [
+          {
+            "code": "FD010100",
+            "name": {
+              "ko": "관광식당",
+              "en": "Tourist Restaurants"
+            }
+          },
+          {
+            "code": "FD010200",
+            "name": {
+              "ko": "모범음식점",
+              "en": "Certified Restaurants"
+            }
+          }
+        ]
+      },
+      {
+        "code": "FD02",
+        "name": {
+          "ko": "외국식",
+          "en": "International Food"
+        },
+        "list": [
+          {
+            "code": "FD020100",
+            "name": {
+              "ko": "중식",
+              "en": "Chinese"
+            }
+          },
+          {
+            "code": "FD020200",
+            "name": {
+              "ko": "일식",
+              "en": "Japanese"
+            }
+          },
+          {
+            "code": "FD020300",
+            "name": {
+              "ko": "서양식",
+              "en": "Western"
+            }
+          },
+          {
+            "code": "FD020400",
+            "name": {
+              "ko": "기타외국식",
+              "en": "Other Foreign"
+            }
+          },
+          {
+            "code": "FD020500",
+            "name": {
+              "ko": "퓨전음식",
+              "en": "Fusion"
+            }
+          }
+        ]
+      },
+      {
+        "code": "FD03",
+        "name": {
+          "ko": "간이음식",
+          "en": "Simple Meals / Street Food"
+        },
+        "list": [
+          {
+            "code": "FD030100",
+            "name": {
+              "ko": "제과",
+              "en": "Bakery"
+            }
+          },
+          {
+            "code": "FD030200",
+            "name": {
+              "ko": "피자, 햄버거, 샌드위치 및 유사음식",
+              "en": " 햄버거"
+            }
+          },
+          {
+            "code": "FD030300",
+            "name": {
+              "ko": "치킨",
+              "en": "Fried Chicken"
+            }
+          },
+          {
+            "code": "FD030400",
+            "name": {
+              "ko": "김밥 분식",
+              "en": "Gimbap / Light Korean Snacks"
+            }
+          },
+          {
+            "code": "FD030500",
+            "name": {
+              "ko": "이동음식",
+              "en": "Mobile Food / Food Trucks"
+            }
+          },
+          {
+            "code": "FD030600",
+            "name": {
+              "ko": "기타간이음식",
+              "en": "Other Street Foods"
+            }
+          }
+        ]
+      },
+      {
+        "code": "FD04",
+        "name": {
+          "ko": "주점",
+          "en": "Pubs"
+        },
+        "list": [
+          {
+            "code": "FD040100",
+            "name": {
+              "ko": "바/펍",
+              "en": "Bars / Pubs"
+            }
+          },
+          {
+            "code": "FD040200",
+            "name": {
+              "ko": "생맥주전문점",
+              "en": "Draft Beer Bars"
+            }
+          },
+          {
+            "code": "FD040300",
+            "name": {
+              "ko": "클럽",
+              "en": "Nightclubs"
+            }
+          },
+          {
+            "code": "FD040400",
+            "name": {
+              "ko": "전통주/민속주점",
+              "en": "Traditional Liquor Pubs"
+            }
+          },
+          {
+            "code": "FD040500",
+            "name": {
+              "ko": "기타주점",
+              "en": "Other Pubs"
+            }
+          }
+        ]
+      },
+      {
+        "code": "FD05",
+        "name": {
+          "ko": "카페/ 찻집",
+          "en": "Cafés / Teahouses"
+        },
+        "list": [
+          {
+            "code": "FD050100",
+            "name": {
+              "ko": "카페",
+              "en": "Cafés"
+            }
+          },
+          {
+            "code": "FD050200",
+            "name": {
+              "ko": "찻집",
+              "en": "Tea Houses"
+            }
+          },
+          {
+            "code": "FD050300",
+            "name": {
+              "ko": "기타음료점",
+              "en": "Other Beverage Shops"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "HS",
+    "name": {
+      "ko": "역사관광",
+      "en": "Historical Tourism"
+    },
+    "list": [
+      {
+        "code": "HS01",
+        "name": {
+          "ko": "역사유적지",
+          "en": "Historic Sites"
+        },
+        "list": [
+          {
+            "code": "HS010100",
+            "name": {
+              "ko": "고궁",
+              "en": "Royal Palaces"
+            }
+          },
+          {
+            "code": "HS010200",
+            "name": {
+              "ko": "성ㆍ산성ㆍ성곽",
+              "en": "Fortress / Fortress Walls"
+            }
+          },
+          {
+            "code": "HS010300",
+            "name": {
+              "ko": "문",
+              "en": "Gates"
+            }
+          },
+          {
+            "code": "HS010400",
+            "name": {
+              "ko": "고택",
+              "en": "Traditional Houses"
+            }
+          },
+          {
+            "code": "HS010500",
+            "name": {
+              "ko": "생가",
+              "en": "Birthplaces"
+            }
+          },
+          {
+            "code": "HS010600",
+            "name": {
+              "ko": "민속마을",
+              "en": "Folk Villages"
+            }
+          },
+          {
+            "code": "HS010700",
+            "name": {
+              "ko": "사적지",
+              "en": "Historical Remains"
+            }
+          },
+          {
+            "code": "HS010800",
+            "name": {
+              "ko": "고분, 능",
+              "en": " 능"
+            }
+          },
+          {
+            "code": "HS010900",
+            "name": {
+              "ko": "사당",
+              "en": "Shrines"
+            }
+          },
+          {
+            "code": "HS011000",
+            "name": {
+              "ko": "선사유적지",
+              "en": "Prehistoric Sites"
+            }
+          },
+          {
+            "code": "HS011100",
+            "name": {
+              "ko": "근대건축물",
+              "en": "Modern Architecture"
+            }
+          },
+          {
+            "code": "HS011200",
+            "name": {
+              "ko": "기타역사유적지",
+              "en": "Other Historic Sites"
+            }
+          }
+        ]
+      },
+      {
+        "code": "HS02",
+        "name": {
+          "ko": "역사유물",
+          "en": "Historical Artifacts"
+        },
+        "list": [
+          {
+            "code": "HS020100",
+            "name": {
+              "ko": "탑ㆍ비석ㆍ기념탑",
+              "en": "Pagodas / Steles / Monuments"
+            }
+          },
+          {
+            "code": "HS020200",
+            "name": {
+              "ko": "선사유물",
+              "en": "Prehistoric Relics"
+            }
+          },
+          {
+            "code": "HS020300",
+            "name": {
+              "ko": "불상",
+              "en": "Buddhist Statues"
+            }
+          },
+          {
+            "code": "HS020400",
+            "name": {
+              "ko": "기타역사유물",
+              "en": "Other Historical Artifacts"
+            }
+          }
+        ]
+      },
+      {
+        "code": "HS03",
+        "name": {
+          "ko": "종교성지",
+          "en": "Religious Sites"
+        },
+        "list": [
+          {
+            "code": "HS030100",
+            "name": {
+              "ko": "불교",
+              "en": "Buddhism"
+            }
+          },
+          {
+            "code": "HS030200",
+            "name": {
+              "ko": "기독교",
+              "en": "Christianity"
+            }
+          },
+          {
+            "code": "HS030300",
+            "name": {
+              "ko": "이슬람",
+              "en": "Islam"
+            }
+          },
+          {
+            "code": "HS030400",
+            "name": {
+              "ko": "기타 종교성지",
+              "en": "Other Religious Sites"
+            }
+          }
+        ]
+      },
+      {
+        "code": "HS04",
+        "name": {
+          "ko": "안보관광지",
+          "en": "Security Tourism Sites"
+        },
+        "list": [
+          {
+            "code": "HS040100",
+            "name": {
+              "ko": "안보유적지",
+              "en": "Security Heritage Sites"
+            }
+          },
+          {
+            "code": "HS040200",
+            "name": {
+              "ko": "안보관광시설",
+              "en": "Security Tourism Facilities"
+            }
+          },
+          {
+            "code": "HS040300",
+            "name": {
+              "ko": "북한관광지",
+              "en": "North Korea-related Tourist Sites"
+            }
+          },
+          {
+            "code": "HS040400",
+            "name": {
+              "ko": "기타안보관광지",
+              "en": "Other Security Tourism Sites"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "LS",
+    "name": {
+      "ko": "레저스포츠",
+      "en": "Leisure Sports"
+    },
+    "list": [
+      {
+        "code": "LS01",
+        "name": {
+          "ko": "육상레저스포츠",
+          "en": "Land Leisure Sports"
+        },
+        "list": [
+          {
+            "code": "LS010100",
+            "name": {
+              "ko": "인라인(실내 인라인 포함)",
+              "en": "Inline Skating (Indoor)"
+            }
+          },
+          {
+            "code": "LS010200",
+            "name": {
+              "ko": "자전거하이킹",
+              "en": "Biking"
+            }
+          },
+          {
+            "code": "LS010300",
+            "name": {
+              "ko": "카트",
+              "en": "Go-Karts"
+            }
+          },
+          {
+            "code": "LS010400",
+            "name": {
+              "ko": "골프",
+              "en": "Golf"
+            }
+          },
+          {
+            "code": "LS010500",
+            "name": {
+              "ko": "경마",
+              "en": "Horse Racing"
+            }
+          },
+          {
+            "code": "LS010600",
+            "name": {
+              "ko": "경륜",
+              "en": "Bike Racing"
+            }
+          },
+          {
+            "code": "LS010700",
+            "name": {
+              "ko": "승마",
+              "en": "Horseback Riding"
+            }
+          },
+          {
+            "code": "LS010800",
+            "name": {
+              "ko": "스키/스노보드",
+              "en": "Skiing / Snowboarding"
+            }
+          },
+          {
+            "code": "LS010900",
+            "name": {
+              "ko": "스케이트",
+              "en": "Skating"
+            }
+          },
+          {
+            "code": "LS011000",
+            "name": {
+              "ko": "썰매장",
+              "en": "Sledding"
+            }
+          },
+          {
+            "code": "LS011100",
+            "name": {
+              "ko": "수렵장",
+              "en": "Hunting Grounds"
+            }
+          },
+          {
+            "code": "LS011200",
+            "name": {
+              "ko": "사격장",
+              "en": "Shooting Ranges"
+            }
+          },
+          {
+            "code": "LS011300",
+            "name": {
+              "ko": "암벽등반",
+              "en": "Rock Climbing"
+            }
+          },
+          {
+            "code": "LS011400",
+            "name": {
+              "ko": "서바이벌게임",
+              "en": "Survival Games"
+            }
+          },
+          {
+            "code": "LS011500",
+            "name": {
+              "ko": "ATV",
+              "en": "All-Terrain Vehicle (ATV)"
+            }
+          },
+          {
+            "code": "LS011600",
+            "name": {
+              "ko": "MTB",
+              "en": "Mountain Bike (MTB)"
+            }
+          },
+          {
+            "code": "LS011700",
+            "name": {
+              "ko": "오프로드",
+              "en": "Off-road Adventures"
+            }
+          },
+          {
+            "code": "LS011800",
+            "name": {
+              "ko": "번지점프",
+              "en": "Bungee Jumping"
+            }
+          },
+          {
+            "code": "LS011900",
+            "name": {
+              "ko": "기타육상레저스포츠",
+              "en": "Other Land Leisure Sports"
+            }
+          }
+        ]
+      },
+      {
+        "code": "LS02",
+        "name": {
+          "ko": "수상레저스포츠",
+          "en": "Water Leisure Sports"
+        },
+        "list": [
+          {
+            "code": "LS020100",
+            "name": {
+              "ko": "윈드서핑/제트스키",
+              "en": "Windsurfing / Jet Skiing"
+            }
+          },
+          {
+            "code": "LS020200",
+            "name": {
+              "ko": "카약/카누",
+              "en": "Kayaking / Canoeing"
+            }
+          },
+          {
+            "code": "LS020300",
+            "name": {
+              "ko": "요트",
+              "en": "Yachting"
+            }
+          },
+          {
+            "code": "LS020400",
+            "name": {
+              "ko": "스노쿨링/스킨스쿠버다이빙",
+              "en": "Snorkeling / Scuba Diving"
+            }
+          },
+          {
+            "code": "LS020500",
+            "name": {
+              "ko": "민물낚시",
+              "en": "Freshwater Fishing"
+            }
+          },
+          {
+            "code": "LS020600",
+            "name": {
+              "ko": "바다낚시",
+              "en": "Sea Fishing"
+            }
+          },
+          {
+            "code": "LS020700",
+            "name": {
+              "ko": "수영",
+              "en": "Swimming"
+            }
+          },
+          {
+            "code": "LS020800",
+            "name": {
+              "ko": "래프팅",
+              "en": "Rafting"
+            }
+          },
+          {
+            "code": "LS020900",
+            "name": {
+              "ko": "수상오토바이",
+              "en": "Water Scooters"
+            }
+          },
+          {
+            "code": "LS021000",
+            "name": {
+              "ko": "수상자전거",
+              "en": "Water Bikes"
+            }
+          },
+          {
+            "code": "LS021100",
+            "name": {
+              "ko": "조정",
+              "en": "Rowing"
+            }
+          },
+          {
+            "code": "LS021200",
+            "name": {
+              "ko": "워터슬레드",
+              "en": "Water Sleds"
+            }
+          },
+          {
+            "code": "LS021300",
+            "name": {
+              "ko": "패러세일",
+              "en": "Parasailing"
+            }
+          },
+          {
+            "code": "LS021400",
+            "name": {
+              "ko": "기타수상레저스포츠",
+              "en": "Other Water Leisure Sports"
+            }
+          }
+        ]
+      },
+      {
+        "code": "LS03",
+        "name": {
+          "ko": "항공레저스포츠",
+          "en": "Aerial Leisure Sports"
+        },
+        "list": [
+          {
+            "code": "LS030100",
+            "name": {
+              "ko": "스카이다이빙",
+              "en": "Skydiving"
+            }
+          },
+          {
+            "code": "LS030200",
+            "name": {
+              "ko": "초경량비행",
+              "en": "Ultralight Flights"
+            }
+          },
+          {
+            "code": "LS030300",
+            "name": {
+              "ko": "헹글라이딩/패러글라이딩",
+              "en": "Hang Gliding / Paragliding"
+            }
+          },
+          {
+            "code": "LS030400",
+            "name": {
+              "ko": "열기구",
+              "en": "Hot Air Balloons"
+            }
+          },
+          {
+            "code": "LS030500",
+            "name": {
+              "ko": "무인비행장치(드론)",
+              "en": "Drones"
+            }
+          },
+          {
+            "code": "LS030600",
+            "name": {
+              "ko": "기타항공레저스포츠",
+              "en": "Other Aerial Leisure Sports"
+            }
+          }
+        ]
+      },
+      {
+        "code": "LS04",
+        "name": {
+          "ko": "복합레저스포츠",
+          "en": "Mixed Leisure Sports"
+        },
+        "list": [
+          {
+            "code": "LS040100",
+            "name": {
+              "ko": "복합레저스포츠",
+              "en": "Mixed Leisure Sports"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "NA",
+    "name": {
+      "ko": "자연관광",
+      "en": "Nature Tourism"
+    },
+    "list": [
+      {
+        "code": "NA01",
+        "name": {
+          "ko": "자연경관(산)",
+          "en": "Natural Scenery (Mountains)"
+        },
+        "list": [
+          {
+            "code": "NA010100",
+            "name": {
+              "ko": "산, 고개, 오름, 봉우리",
+              "en": " 고개"
+            }
+          },
+          {
+            "code": "NA010200",
+            "name": {
+              "ko": "숲",
+              "en": "Forests"
+            }
+          },
+          {
+            "code": "NA010300",
+            "name": {
+              "ko": "폭포",
+              "en": "Waterfalls"
+            }
+          },
+          {
+            "code": "NA010400",
+            "name": {
+              "ko": "계곡",
+              "en": "Valleys"
+            }
+          },
+          {
+            "code": "NA010500",
+            "name": {
+              "ko": "약수터",
+              "en": "Mineral Springs"
+            }
+          }
+        ]
+      },
+      {
+        "code": "NA02",
+        "name": {
+          "ko": "자연경관(하천‧해양)",
+          "en": "Natural Scenery (Rivers/Marine)"
+        },
+        "list": [
+          {
+            "code": "NA020100",
+            "name": {
+              "ko": "강",
+              "en": "Rivers"
+            }
+          },
+          {
+            "code": "NA020200",
+            "name": {
+              "ko": "호수",
+              "en": "Lakes"
+            }
+          },
+          {
+            "code": "NA020300",
+            "name": {
+              "ko": "저수지",
+              "en": "Reservoirs"
+            }
+          },
+          {
+            "code": "NA020400",
+            "name": {
+              "ko": "연못·늪",
+              "en": "Ponds"
+            }
+          },
+          {
+            "code": "NA020500",
+            "name": {
+              "ko": "섬",
+              "en": "Islands"
+            }
+          },
+          {
+            "code": "NA020600",
+            "name": {
+              "ko": "염전",
+              "en": "Salt fields"
+            }
+          },
+          {
+            "code": "NA020700",
+            "name": {
+              "ko": "항구/포구",
+              "en": "Harbors"
+            }
+          },
+          {
+            "code": "NA020800",
+            "name": {
+              "ko": "해안절경",
+              "en": "Coastal Scenery"
+            }
+          },
+          {
+            "code": "NA020900",
+            "name": {
+              "ko": "해변. 해수욕장",
+              "en": "Beaches"
+            }
+          }
+        ]
+      },
+      {
+        "code": "NA03",
+        "name": {
+          "ko": "자연생태",
+          "en": "Natural Ecology"
+        },
+        "list": [
+          {
+            "code": "NA030100",
+            "name": {
+              "ko": "동굴",
+              "en": "Caves"
+            }
+          },
+          {
+            "code": "NA030200",
+            "name": {
+              "ko": "희귀동.식물",
+              "en": "Rare Flora and Fauna"
+            }
+          },
+          {
+            "code": "NA030300",
+            "name": {
+              "ko": "기암괴석",
+              "en": "Unique Rock Formations"
+            }
+          },
+          {
+            "code": "NA030400",
+            "name": {
+              "ko": "생태습지",
+              "en": "Ecological Wetlands"
+            }
+          },
+          {
+            "code": "NA030500",
+            "name": {
+              "ko": "기타자연생태",
+              "en": "Other Natural Ecology Sites"
+            }
+          }
+        ]
+      },
+      {
+        "code": "NA04",
+        "name": {
+          "ko": "자연공원",
+          "en": "Natural Parks"
+        },
+        "list": [
+          {
+            "code": "NA040100",
+            "name": {
+              "ko": "국립공원",
+              "en": "National Parks"
+            }
+          },
+          {
+            "code": "NA040200",
+            "name": {
+              "ko": "도립공원",
+              "en": "Provincial Parks"
+            }
+          },
+          {
+            "code": "NA040300",
+            "name": {
+              "ko": "군립공원",
+              "en": "County Parks"
+            }
+          },
+          {
+            "code": "NA040400",
+            "name": {
+              "ko": "지질공원",
+              "en": "Geoparks"
+            }
+          },
+          {
+            "code": "NA040500",
+            "name": {
+              "ko": "생태관광지",
+              "en": "Ecotourism Sites"
+            }
+          },
+          {
+            "code": "NA040600",
+            "name": {
+              "ko": "자연휴양림",
+              "en": "Natural Recreation Forests"
+            }
+          },
+          {
+            "code": "NA040700",
+            "name": {
+              "ko": "수목원ㆍ정원",
+              "en": "Arboretums / Gardens"
+            }
+          }
+        ]
+      },
+      {
+        "code": "NA05",
+        "name": {
+          "ko": "기타자연관광",
+          "en": "Other Nature Tourism"
+        },
+        "list": [
+          {
+            "code": "NA050100",
+            "name": {
+              "ko": "기타자연관광",
+              "en": "Other Nature Tourism Sites"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "SH",
+    "name": {
+      "ko": "쇼핑",
+      "en": "Shopping"
+    },
+    "list": [
+      {
+        "code": "SH01",
+        "name": {
+          "ko": "백화점",
+          "en": "Department Stores"
+        },
+        "list": [
+          {
+            "code": "SH010100",
+            "name": {
+              "ko": "백화점",
+              "en": "Department Stores"
+            }
+          }
+        ]
+      },
+      {
+        "code": "SH02",
+        "name": {
+          "ko": "쇼핑몰",
+          "en": "Shopping Malls"
+        },
+        "list": [
+          {
+            "code": "SH020100",
+            "name": {
+              "ko": "복합쇼핑몰",
+              "en": "Mega Shopping Complexes"
+            }
+          },
+          {
+            "code": "SH020200",
+            "name": {
+              "ko": "아웃렛",
+              "en": "Outlet Malls"
+            }
+          }
+        ]
+      },
+      {
+        "code": "SH03",
+        "name": {
+          "ko": "대형마트",
+          "en": "Large Discount Stores"
+        },
+        "list": [
+          {
+            "code": "SH030100",
+            "name": {
+              "ko": "대형마트",
+              "en": "Large Discount Stores"
+            }
+          }
+        ]
+      },
+      {
+        "code": "SH04",
+        "name": {
+          "ko": "면세점",
+          "en": "Duty-Free Shops"
+        },
+        "list": [
+          {
+            "code": "SH040100",
+            "name": {
+              "ko": "공항면세점",
+              "en": "Airport Duty-Free Shops"
+            }
+          },
+          {
+            "code": "SH040200",
+            "name": {
+              "ko": "시내면세점",
+              "en": "Downtown Duty-Free Shops"
+            }
+          },
+          {
+            "code": "SH040300",
+            "name": {
+              "ko": "사후면세점",
+              "en": "Tax Refund Stores"
+            }
+          }
+        ]
+      },
+      {
+        "code": "SH05",
+        "name": {
+          "ko": "전문매장/상가",
+          "en": "Specialized Stores / Shopping Centers"
+        },
+        "list": [
+          {
+            "code": "SH050100",
+            "name": {
+              "ko": "공방/공예품점",
+              "en": "Craft Shops"
+            }
+          },
+          {
+            "code": "SH050200",
+            "name": {
+              "ko": "전문상가",
+              "en": "Specialty Product Stores"
+            }
+          },
+          {
+            "code": "SH050300",
+            "name": {
+              "ko": "관광기념품/특산물판매점",
+              "en": "Souvenir / Specialty Stores"
+            }
+          }
+        ]
+      },
+      {
+        "code": "SH06",
+        "name": {
+          "ko": "시장",
+          "en": "Markets"
+        },
+        "list": [
+          {
+            "code": "SH060100",
+            "name": {
+              "ko": "비상설시장",
+              "en": "Temporary Markets"
+            }
+          },
+          {
+            "code": "SH060200",
+            "name": {
+              "ko": "상설시장",
+              "en": "Permanent Markets"
+            }
+          }
+        ]
+      },
+      {
+        "code": "SH07",
+        "name": {
+          "ko": "기타쇼핑시설",
+          "en": "Other Shopping Facilities"
+        },
+        "list": [
+          {
+            "code": "SH070100",
+            "name": {
+              "ko": "기타쇼핑시설",
+              "en": "Other Shopping Facilities"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "VE",
+    "name": {
+      "ko": "문화관광",
+      "en": "Cultural Tourism"
+    },
+    "list": [
+      {
+        "code": "VE01",
+        "name": {
+          "ko": "랜드마크관광",
+          "en": "Landmark Tourism"
+        },
+        "list": [
+          {
+            "code": "VE010100",
+            "name": {
+              "ko": "건물",
+              "en": "Buildings"
+            }
+          },
+          {
+            "code": "VE010200",
+            "name": {
+              "ko": "타워 / 전망대",
+              "en": "Towers / Observatories"
+            }
+          },
+          {
+            "code": "VE010300",
+            "name": {
+              "ko": "다리 / 대교",
+              "en": "Bridges"
+            }
+          },
+          {
+            "code": "VE010400",
+            "name": {
+              "ko": "분수",
+              "en": "Fountains"
+            }
+          },
+          {
+            "code": "VE010500",
+            "name": {
+              "ko": "동상",
+              "en": "Statues"
+            }
+          },
+          {
+            "code": "VE010600",
+            "name": {
+              "ko": "터널",
+              "en": "Tunnels"
+            }
+          },
+          {
+            "code": "VE010700",
+            "name": {
+              "ko": "댐",
+              "en": "Dams"
+            }
+          },
+          {
+            "code": "VE010800",
+            "name": {
+              "ko": "등대",
+              "en": "Lighthouses"
+            }
+          },
+          {
+            "code": "VE010900",
+            "name": {
+              "ko": "기타 건축/조형물",
+              "en": "Other Structures/Sculptures"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE02",
+        "name": {
+          "ko": "테마공원",
+          "en": "Theme Parks"
+        },
+        "list": [
+          {
+            "code": "VE020100",
+            "name": {
+              "ko": "테마파크",
+              "en": "Theme Parks"
+            }
+          },
+          {
+            "code": "VE020200",
+            "name": {
+              "ko": "워터파크",
+              "en": "Water Parks"
+            }
+          },
+          {
+            "code": "VE020300",
+            "name": {
+              "ko": "동물원",
+              "en": "Zoos"
+            }
+          },
+          {
+            "code": "VE020400",
+            "name": {
+              "ko": "수족관 / 아쿠라리움",
+              "en": "Aquariums"
+            }
+          },
+          {
+            "code": "VE020500",
+            "name": {
+              "ko": "천문대",
+              "en": "Astronomical Observatories / Planetarium"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE03",
+        "name": {
+          "ko": "도시공원",
+          "en": "Urban Parks"
+        },
+        "list": [
+          {
+            "code": "VE030100",
+            "name": {
+              "ko": "시민공원",
+              "en": "Citizen Parks"
+            }
+          },
+          {
+            "code": "VE030200",
+            "name": {
+              "ko": "소공원",
+              "en": "Mini Parks"
+            }
+          },
+          {
+            "code": "VE030300",
+            "name": {
+              "ko": "어린이공원",
+              "en": "Children's Parks"
+            }
+          },
+          {
+            "code": "VE030400",
+            "name": {
+              "ko": "근린공원",
+              "en": "Neighborhood Parks"
+            }
+          },
+          {
+            "code": "VE030500",
+            "name": {
+              "ko": "주제공원",
+              "en": "Themed Parks"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE04",
+        "name": {
+          "ko": "도시.지역문화관광",
+          "en": "Urban and Regional Cultural Tourism"
+        },
+        "list": [
+          {
+            "code": "VE040100",
+            "name": {
+              "ko": "골목길, 문화거리",
+              "en": " 문화거리"
+            }
+          },
+          {
+            "code": "VE040200",
+            "name": {
+              "ko": "마을관광지",
+              "en": "Village Tourism Siteas"
+            }
+          },
+          {
+            "code": "VE040300",
+            "name": {
+              "ko": "둘레길",
+              "en": "Walking Trails"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE05",
+        "name": {
+          "ko": "복합관광시설",
+          "en": "Complex Tourism Facilities"
+        },
+        "list": [
+          {
+            "code": "VE050100",
+            "name": {
+              "ko": "관광단지",
+              "en": "Tourism Complexes"
+            }
+          },
+          {
+            "code": "VE050200",
+            "name": {
+              "ko": "리조트",
+              "en": "Resorts"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE06",
+        "name": {
+          "ko": "공연시설",
+          "en": "Performance Facilities"
+        },
+        "list": [
+          {
+            "code": "VE060100",
+            "name": {
+              "ko": "공연장",
+              "en": "Performance Halls"
+            }
+          },
+          {
+            "code": "VE060200",
+            "name": {
+              "ko": "영화관",
+              "en": "Movie Theaters / Cinemas"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE07",
+        "name": {
+          "ko": "전시시설",
+          "en": "Exhibition Facilities"
+        },
+        "list": [
+          {
+            "code": "VE070100",
+            "name": {
+              "ko": "박물관",
+              "en": "Museums"
+            }
+          },
+          {
+            "code": "VE070200",
+            "name": {
+              "ko": "기념관",
+              "en": "Memorial Halls"
+            }
+          },
+          {
+            "code": "VE070300",
+            "name": {
+              "ko": "전시관",
+              "en": "Exhibition Halls"
+            }
+          },
+          {
+            "code": "VE070400",
+            "name": {
+              "ko": "컨벤션센터",
+              "en": "Convention Centers"
+            }
+          },
+          {
+            "code": "VE070500",
+            "name": {
+              "ko": "과학관",
+              "en": "Science Museums"
+            }
+          },
+          {
+            "code": "VE070600",
+            "name": {
+              "ko": "미술관/화랑",
+              "en": "Art Museums/Galleries"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE08",
+        "name": {
+          "ko": "행사시설",
+          "en": "Event Facilities"
+        },
+        "list": [
+          {
+            "code": "VE080600",
+            "name": {
+              "ko": "연회장",
+              "en": "Banquet Hall"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE09",
+        "name": {
+          "ko": "교육시설",
+          "en": "Educational Facilities"
+        },
+        "list": [
+          {
+            "code": "VE090100",
+            "name": {
+              "ko": "한국문화원",
+              "en": "Korean Cultural Centers"
+            }
+          },
+          {
+            "code": "VE090200",
+            "name": {
+              "ko": "외국문화원",
+              "en": "International Cultural Centers"
+            }
+          },
+          {
+            "code": "VE090300",
+            "name": {
+              "ko": "도서관",
+              "en": "Libraries"
+            }
+          },
+          {
+            "code": "VE090400",
+            "name": {
+              "ko": "문화전수시설",
+              "en": "Cultural Training Facilities"
+            }
+          },
+          {
+            "code": "VE090500",
+            "name": {
+              "ko": "어학당",
+              "en": "Language Institutes"
+            }
+          },
+          {
+            "code": "VE090600",
+            "name": {
+              "ko": "학교",
+              "en": "Schools"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE10",
+        "name": {
+          "ko": "레저스포츠시설",
+          "en": "Leisure Sports Facilities"
+        },
+        "list": [
+          {
+            "code": "VE100100",
+            "name": {
+              "ko": "스포츠경기장",
+              "en": "Sports Stadiums"
+            }
+          },
+          {
+            "code": "VE100200",
+            "name": {
+              "ko": "스포츠센터, 수련시설",
+              "en": " 수련시설"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE11",
+        "name": {
+          "ko": "교통시설",
+          "en": "Transportation Facilities"
+        },
+        "list": [
+          {
+            "code": "VE110100",
+            "name": {
+              "ko": "공항",
+              "en": "Airports"
+            }
+          },
+          {
+            "code": "VE110200",
+            "name": {
+              "ko": "기차역",
+              "en": "Train Stations"
+            }
+          },
+          {
+            "code": "VE110300",
+            "name": {
+              "ko": "버스터미널",
+              "en": "Bus Terminals"
+            }
+          },
+          {
+            "code": "VE110400",
+            "name": {
+              "ko": "여객선터미널",
+              "en": "Passenger Ferry Terminals"
+            }
+          },
+          {
+            "code": "VE110500",
+            "name": {
+              "ko": "고속도로휴게소",
+              "en": "Highway Rest Areas"
+            }
+          },
+          {
+            "code": "VE110600",
+            "name": {
+              "ko": "지하철",
+              "en": "Subway Stations"
+            }
+          }
+        ]
+      },
+      {
+        "code": "VE12",
+        "name": {
+          "ko": "기타문화관광지",
+          "en": "Other Cultural Tourist Attractions"
+        },
+        "list": [
+          {
+            "code": "VE120100",
+            "name": {
+              "ko": "서점",
+              "en": "Bookstores"
+            }
+          },
+          {
+            "code": "VE120200",
+            "name": {
+              "ko": "카지노",
+              "en": "Casinos"
+            }
+          },
+          {
+            "code": "VE120300",
+            "name": {
+              "ko": "기타문화시설",
+              "en": "Other Cultural Facilities"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
