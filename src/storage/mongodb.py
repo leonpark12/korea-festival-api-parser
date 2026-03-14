@@ -188,6 +188,130 @@ def save_pois_to_mongodb(data: dict[str, dict], db_name: str = "korea_tourism") 
     return stats
 
 
+def save_sync_summary_to_mongodb(
+    summaries: list[dict], db_name: str = "korea_tourism"
+) -> int:
+    """동기화 결과를 updated_content 컬렉션에 저장한다.
+
+    문서 구조:
+    {
+        "contentId": "12345",
+        "name": "POI 이름",
+        "region": "seoul",
+        "action": "updated" | "deleted",
+        "lang": "kr" | "en",
+        "syncDate": "2026-03-14T10:00:00"
+    }
+
+    누적 이력 기록 목적으로 insert_many를 사용한다.
+
+    Args:
+        summaries: 동기화 요약 문서 리스트
+        db_name: MongoDB 데이터베이스 이름
+
+    Returns:
+        저장된 문서 수
+    """
+    if not summaries:
+        return 0
+
+    client = _get_client()
+    db = client[db_name]
+
+    try:
+        collection = db["updated_content"]
+        total = 0
+        total_batches = (len(summaries) + BATCH_SIZE - 1) // BATCH_SIZE
+
+        for batch_num, i in enumerate(range(0, len(summaries), BATCH_SIZE), 1):
+            batch = summaries[i : i + BATCH_SIZE]
+
+            for attempt in range(1, MAX_RETRIES + 1):
+                try:
+                    result = collection.insert_many(batch)
+                    total += len(result.inserted_ids)
+                    break
+                except AutoReconnect:
+                    if attempt == MAX_RETRIES:
+                        raise
+                    wait = BATCH_DELAY * attempt * 2
+                    print(f"    연결 끊김, {wait:.0f}초 후 재시도 ({attempt}/{MAX_RETRIES})...")
+                    time.sleep(wait)
+
+            print(f"    배치 {batch_num}/{total_batches} 완료 ({len(batch)}건)")
+
+            if batch_num < total_batches:
+                time.sleep(BATCH_DELAY)
+
+        return total
+    finally:
+        client.close()
+
+
+def delete_event_pois_from_mongodb(
+    db_name: str = "korea_tourism",
+) -> tuple[dict[str, int], list[dict]]:
+    """EV(행사) 타입 POI를 MongoDB에서 전량 삭제한다.
+
+    source.lcls 배열의 첫 번째 요소가 "EV"인 문서를 대상으로 한다.
+
+    Args:
+        db_name: MongoDB 데이터베이스 이름
+
+    Returns:
+        (stats, summaries)
+        - stats: 컬렉션별 삭제 건수 {"pois_kr": N, "pois_en": N}
+        - summaries: 삭제된 POI 감사 기록 리스트
+    """
+    from datetime import datetime
+
+    client = _get_client()
+    db = client[db_name]
+    stats: dict[str, int] = {}
+    summaries: list[dict] = []
+    sync_date = datetime.now().isoformat(timespec="seconds")
+
+    query = {"source.lcls.0": "EV"}
+
+    try:
+        for lang in ("kr", "en"):
+            col_name = f"pois_{lang}"
+            collection = db[col_name]
+
+            # 삭제 전 감사 기록용 조회
+            docs = list(collection.find(query, {"id": 1, "name": 1, "region": 1, "_id": 0}))
+            for doc in docs:
+                summaries.append({
+                    "contentId": doc.get("id", ""),
+                    "name": doc.get("name", ""),
+                    "region": doc.get("region", ""),
+                    "action": "festival_deleted",
+                    "lang": lang,
+                    "syncDate": sync_date,
+                })
+
+            if not docs:
+                print(f"  [MongoDB] {col_name}: 삭제 대상 EV 문서 없음")
+                continue
+
+            for attempt in range(1, MAX_RETRIES + 1):
+                try:
+                    result = collection.delete_many(query)
+                    stats[col_name] = result.deleted_count
+                    print(f"  [MongoDB] {col_name}: EV 문서 {result.deleted_count}건 삭제 완료")
+                    break
+                except AutoReconnect:
+                    if attempt == MAX_RETRIES:
+                        raise
+                    wait = BATCH_DELAY * attempt * 2
+                    print(f"    연결 끊김, {wait:.0f}초 후 재시도 ({attempt}/{MAX_RETRIES})...")
+                    time.sleep(wait)
+    finally:
+        client.close()
+
+    return stats, summaries
+
+
 def delete_pois_from_mongodb(
     deleted_ids: dict[str, list[str]], db_name: str = "korea_tourism"
 ) -> dict[str, int]:

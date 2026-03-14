@@ -2,6 +2,160 @@
 
 ## [Unreleased] — 2026-03-14
 
+### 25. Step 5: 행사정보조회 (searchFestival2) 구현
+
+`searchFestival2` API를 통해 행사/축제 데이터를 수집하여 기존 EV 타입 문서를 전량 교체하는 기능 추가. GitHub Actions로 매일 KST 06:00에 자동 실행.
+
+#### 수정 파일
+
+- **`src/config.py`** — `ENDPOINTS`에 `search_festival` (searchFestival2) 엔드포인트 추가
+- **`main.py`**
+  - `--step 5` / `--eventStartDate` / `--eventEndDate` CLI 인자 추가
+  - `--fetch festival` 개별 fetcher 실행 지원
+  - `run_step5()`: 행사정보 수신 → EV 문서 삭제 → upsert → 감사 기록 저장
+
+#### 신규 파일
+
+- **`src/fetchers/festival.py`** — Step 5 핵심 fetcher
+  - `fetch_festival(event_start_date, event_end_date)`: searchFestival2 호출 → 카테고리 필터링 → transform_item() 변환 → 상세 API 병합
+  - 날짜 기본값: 시작일 7일 전, 종료일 3개월 후
+  - 최대 5회 재시도, EXCLUDE_LCLS3 필터링 적용
+- **`src/storage/mongodb.py`**
+  - `delete_event_pois_from_mongodb()` 추가: `source.lcls[0]=="EV"` 조건으로 전량 삭제 + 감사 기록 생성
+- **`.github/workflows/festival-daily.yml`** — 매일 KST 06:00 (UTC 21:00) 자동 실행 워크플로우
+  - `workflow_dispatch`로 eventStartDate, eventEndDate 수동 입력 지원
+
+#### 데이터 흐름
+
+```
+searchFestival2 API (kr/en)
+    → fetch_all_pages → 카테고리 필터링 → transform_item() → 상세 API 병합
+    → MongoDB EV 문서 전량 삭제 → 신규 행사 POI upsert
+    → updated_content에 감사 기록 저장
+```
+
+#### MongoDB 컬렉션
+
+| 컬렉션 | 용도 |
+|--------|------|
+| `pois_kr` / `pois_en` | EV 문서 전량 삭제 후 upsert |
+| `updated_content` | 행사 동기화 이력 (festival_updated / festival_deleted) |
+
+---
+
+### 24. Step 4 GitHub Actions 실행 시간 KST 05:00으로 변경
+
+#### 수정 파일
+
+- **`.github/workflows/sync-daily.yml`**
+  - `cron`: `0 1 * * *` (KST 10:00) → `0 20 * * *` (KST 05:00, UTC 20:00)
+- **`README.md`** — 스케줄 설명 변경
+
+---
+
+### 23. Step 4 areaBasedSyncList2 API 재시도 로직 추가
+
+#### 수정 파일
+
+- **`src/fetchers/sync_update.py`**
+  - `fetch_sync_update()`: `fetch_all_pages()` 호출에 재시도 로직 추가
+  - 최대 5회 시도 (첫 시도 + 4회 재시도), 실패 시 5초 대기
+  - 각 시도마다 진행 상황 로그 출력
+  - 5회 모두 실패 시 기존처럼 해당 언어 스킵
+
+---
+
+### 22. Step 4 GitHub Actions 매일 실행으로 변경
+
+#### 수정 파일
+
+- **`.github/workflows/sync-daily.yml`**
+  - `cron`: `0 22 * * 1,4` (매주 화/금) → `0 1 * * *` (매일 KST 10:00, UTC 01:00)
+  - `modifiedtime` 설명: "기본: 5일 전" → "기본: 2일 전"
+- **`main.py`**
+  - `run_step4()` 및 `--fetch sync_update`의 `modifiedtime` 기본값: `timedelta(days=5)` → `timedelta(days=2)`
+  - 매일 실행 시 1일 간격 + 여유 1일로 누락 방지
+- **`README.md`** — 스케줄 및 기본값 설명 변경
+
+---
+
+### 21. Step 4 카테고리 필터링 로그 개선
+
+#### 수정 파일
+
+- **`src/fetchers/sync_update.py`**
+  - 제외 카테고리 필터링 시 제외된 카테고리 코드별 분포를 요약 출력
+  - 전부 제외된 경우 원인을 명확히 표시하는 로그 메시지 개선
+  - 디버그 분석 결과: `modifiedtime=20260301` 기간 수신 2151건 전부 `SH040300`(쇼핑) 카테고리로 정상 제외 확인
+
+---
+
+### 20. GitHub Actions 스케줄 변경 및 modifiedtime 기본값 조정
+
+#### 수정 파일
+
+- **`.github/workflows/sync-daily.yml`**
+  - `name`: "관광정보 일일 동기화" → "관광정보 동기화"
+  - `cron`: `0 1 * * *` (매일 UTC 01:00) → `0 22 * * 1,4` (매주 화/금 KST 07:00, UTC 월/목 22:00)
+- **`main.py`**
+  - `run_step4()` 및 `--fetch sync_update`의 `modifiedtime` 기본값: `timedelta(days=2)` → `timedelta(days=5)`
+  - 주 2회 실행 시 최대 간격 4일(금→화) + 여유 1일로 누락 방지
+- **`README.md`** — GitHub Actions 스케줄 설명 변경
+
+---
+
+### 19. Step 4: 관광정보 동기화 (증분 업데이트) 구현
+
+`modifiedtime` 파라미터를 사용하여 최근 수정/삭제된 관광정보만 수신하고 MongoDB를 업데이트하는 증분 동기화 기능 추가. GitHub Actions로 주 2회 자동 실행 지원.
+
+#### 수정 파일
+
+- **`src/config.py`** — `ENDPOINTS`에 `area_based_sync` (areaBasedSyncList2) 엔드포인트 추가
+- **`src/transformers/pois.py`**
+  - `_transform_item()` → `transform_item()` 공개화 (Step 4 재사용)
+  - `_build_category_map()` → `build_category_map()` 공개화 (Step 4 재사용)
+  - 기존 내부 호출부(`transform_pois()`) 함께 수정
+- **`src/fetchers/detail_update.py`**
+  - `_fetch_detail_for_poi()` → `fetch_detail_for_poi()` 공개화 (Step 4 재사용)
+  - `save_raw_data` 키워드 인자 추가 (기본값 `True`): Step 4에서는 `False`로 호출하여 raw 파일 저장 생략
+  - 기존 내부 호출부(`fetch_detail_update()`) 함께 수정
+
+#### 신규 파일
+
+- **`src/fetchers/sync_update.py`** — Step 4 핵심 fetcher
+  - `fetch_sync_update(modifiedtime)`: areaBasedSyncList2 호출 → showflag 분류 → 삭제/업데이트 처리
+  - 삭제 대상: showflag=0 → MongoDB에서 삭제 + output 파일 제거
+  - 업데이트 대상: transform_item() 변환 → fetch_detail_for_poi() 상세 수신 → merge_detail_to_poi() 병합
+- **`src/storage/mongodb.py`**
+  - `save_sync_summary_to_mongodb()` 추가: `updated_content` 컬렉션에 동기화 이력 저장
+- **`main.py`**
+  - `--step 4` / `--modifiedtime YYYYMMDD` CLI 인자 추가
+  - `--fetch sync_update` 개별 fetcher 실행 지원
+  - `run_step4()`: 증분 동기화 오케스트레이션 (수신 → MongoDB upsert → 삭제 → 요약 저장)
+- **`.github/workflows/sync-daily.yml`** — 매주 화/금 KST 07:00 (UTC 월/목 22:00) 자동 실행 워크플로우
+
+#### MongoDB 컬렉션
+
+| 컬렉션 | 용도 |
+|--------|------|
+| `pois_kr` / `pois_en` | upsert (업데이트) + delete (삭제) |
+| `updated_content` | 동기화 이력 (insert_many, 누적) |
+
+#### `updated_content` 문서 구조
+
+```json
+{
+    "contentId": "12345",
+    "name": "POI 이름",
+    "region": "seoul",
+    "action": "updated" | "deleted",
+    "lang": "kr" | "en",
+    "syncDate": "2026-03-14T10:00:00"
+}
+```
+
+---
+
 ### 18. 삭제된 POI 정리 + pois_geo MongoDB 로직 제거
 
 #### Part A: pois_geo MongoDB 로직 제거

@@ -10,13 +10,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--step",
         type=int,
-        choices=[1, 2, 3],
-        help="실행 단계 (1: 코드 데이터, 2: 관광정보, 3: POI 상세 업데이트)",
+        choices=[1, 2, 3, 4, 5],
+        help="실행 단계 (1: 코드 데이터, 2: 관광정보, 3: POI 상세 업데이트, 4: 관광정보 동기화, 5: 행사정보조회)",
     )
     parser.add_argument(
         "--fetch",
-        choices=["ldong_code", "category_code", "area_based", "detail_update"],
+        choices=["ldong_code", "category_code", "area_based", "detail_update", "sync_update", "festival"],
         help="개별 fetcher 실행",
+    )
+    parser.add_argument(
+        "--modifiedtime",
+        type=str,
+        default=None,
+        help="수정일 기준 (YYYYMMDD 형식). --step 4에서 사용. 기본값: 2일 전",
     )
     parser.add_argument(
         "--transform-only",
@@ -32,6 +38,18 @@ def parse_args() -> argparse.Namespace:
         "--save-mongodb-details",
         action="store_true",
         help="output 파일 기반으로 MongoDB 상세 업데이트만 실행",
+    )
+    parser.add_argument(
+        "--eventStartDate",
+        type=str,
+        default=None,
+        help="행사 시작일 (YYYYMMDD 형식). --step 5에서 사용. 기본값: 7일 전",
+    )
+    parser.add_argument(
+        "--eventEndDate",
+        type=str,
+        default=None,
+        help="행사 종료일 (YYYYMMDD 형식). --step 5에서 사용. 기본값: 3개월 후",
     )
     parser.add_argument(
         "--force",
@@ -312,6 +330,112 @@ def _load_details_from_output() -> dict | None:
     return data
 
 
+def _save_sync_summary_to_mongodb(summaries: list[dict]) -> None:
+    """동기화 요약을 MongoDB updated_content 컬렉션에 저장한다."""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    if not os.environ.get("MONGODB_URI"):
+        print("[MongoDB] MONGODB_URI 미설정, MongoDB 요약 저장 건너뜀")
+        return
+
+    from src.storage.mongodb import save_sync_summary_to_mongodb
+
+    print("[MongoDB] 동기화 요약 저장 시작...")
+    count = save_sync_summary_to_mongodb(summaries)
+    print(f"[MongoDB] 동기화 요약 저장 완료: {count}건")
+
+
+async def run_fetch_sync_update(modifiedtime: str) -> tuple[dict, dict, list]:
+    from src.fetchers.sync_update import fetch_sync_update
+
+    print(f"[Fetch] 관광정보 동기화 수신 시작 (modifiedtime={modifiedtime})...")
+    upserted, deleted_ids, summaries = await fetch_sync_update(modifiedtime)
+    print("[Fetch] 관광정보 동기화 수신 완료")
+    return upserted, deleted_ids, summaries
+
+
+async def run_step4(modifiedtime: str | None = None) -> None:
+    """Phase 4: 관광정보 동기화 (증분 업데이트)"""
+    from datetime import date, timedelta
+
+    # modifiedtime 기본값: 2일 전 (매일 실행 시 1일 + 여유 1일)
+    if modifiedtime is None:
+        modifiedtime = (date.today() - timedelta(days=2)).strftime("%Y%m%d")
+
+    # 1. 수정된 POI 수신 + 변환 + 상세 업데이트
+    upserted, deleted_ids, summaries = await run_fetch_sync_update(modifiedtime)
+
+    # 2. MongoDB upsert (기존 save_pois_to_mongodb 재사용)
+    if any(upserted.values()):
+        _save_pois_to_mongodb({
+            lang: {"pois": pois} for lang, pois in upserted.items() if pois
+        })
+
+    # 3. MongoDB 삭제
+    if any(deleted_ids.values()):
+        _delete_pois_from_mongodb(deleted_ids)
+
+    # 4. 동기화 요약 저장
+    if summaries:
+        _save_sync_summary_to_mongodb(summaries)
+
+
+async def run_fetch_festival(
+    event_start_date: str | None = None, event_end_date: str | None = None
+) -> tuple[dict, list]:
+    from src.fetchers.festival import fetch_festival
+
+    print("[Fetch] 행사정보 수신 시작...")
+    festival_data, summaries = await fetch_festival(event_start_date, event_end_date)
+    print("[Fetch] 행사정보 수신 완료")
+    return festival_data, summaries
+
+
+def _delete_event_pois_from_mongodb() -> tuple[dict, list]:
+    """EV 타입 POI를 MongoDB에서 전량 삭제한다."""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    if not os.environ.get("MONGODB_URI"):
+        print("[MongoDB] MONGODB_URI 미설정, MongoDB EV 삭제 건너뜀")
+        return {}, []
+
+    from src.storage.mongodb import delete_event_pois_from_mongodb
+
+    print("[MongoDB] EV(행사) 문서 삭제 시작...")
+    stats, delete_summaries = delete_event_pois_from_mongodb()
+    total = sum(stats.values())
+    print(f"[MongoDB] EV 삭제 완료: 총 {total}건 ({stats})")
+    return stats, delete_summaries
+
+
+async def run_step5(
+    event_start_date: str | None = None, event_end_date: str | None = None
+) -> None:
+    """Phase 5: 행사정보조회 (전량 교체)"""
+    # 1. 행사정보 수신 + 변환 + 상세
+    festival_data, summaries = await run_fetch_festival(event_start_date, event_end_date)
+
+    # 2. 데이터가 있을 때만 기존 EV 문서 삭제 후 upsert
+    if any(len(pois) > 0 for pois in festival_data.values()):
+        delete_stats, delete_summaries = _delete_event_pois_from_mongodb()
+        summaries.extend(delete_summaries)
+        _save_pois_to_mongodb({
+            lang: {"pois": pois} for lang, pois in festival_data.items() if pois
+        })
+
+    # 3. 감사 요약 저장
+    if summaries:
+        _save_sync_summary_to_mongodb(summaries)
+
+
 async def run_step3(region: str | None = None, limit: int | None = None, force: bool = False) -> None:
     """Phase 3: POI 상세 업데이트 수신 + MongoDB 저장 + 삭제된 POI 정리"""
     data, deleted_ids = await run_fetch_detail_update(region=region, limit=limit, force=force)
@@ -350,6 +474,12 @@ async def main() -> None:
             await run_fetch_area_based()
         elif args.fetch == "detail_update":
             await run_fetch_detail_update(region=args.region, limit=args.limit)
+        elif args.fetch == "sync_update":
+            from datetime import date, timedelta
+            mt = args.modifiedtime or (date.today() - timedelta(days=2)).strftime("%Y%m%d")
+            await run_fetch_sync_update(mt)
+        elif args.fetch == "festival":
+            await run_fetch_festival(args.eventStartDate, args.eventEndDate)
         return
 
     if args.step:
@@ -359,6 +489,13 @@ async def main() -> None:
             await run_step2()
         elif args.step == 3:
             await run_step3(region=args.region, limit=args.limit, force=args.force)
+        elif args.step == 4:
+            await run_step4(modifiedtime=args.modifiedtime)
+        elif args.step == 5:
+            await run_step5(
+                event_start_date=args.eventStartDate,
+                event_end_date=args.eventEndDate,
+            )
         return
 
     # 인자 없으면 전체 실행 (현재는 step 1만)

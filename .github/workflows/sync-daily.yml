@@ -1,0 +1,31 @@
+name: 관광정보 동기화
+
+on:
+  schedule:
+    - cron: '0 20 * * *'   # 매일 KST 05:00 (UTC 20:00)
+  workflow_dispatch:
+    inputs:
+      modifiedtime:
+        description: '수정일 기준 (YYYYMMDD, 기본: 2일 전)'
+        required: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync
+      - name: Step 4 실행
+        env:
+          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          if [ -n "${{ github.event.inputs.modifiedtime }}" ]; then
+            uv run python main.py --step 4 --modifiedtime ${{ github.event.inputs.modifiedtime }}
+          else
+            uv run python main.py --step 4
+          fi

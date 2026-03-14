@@ -1,0 +1,37 @@
+name: 행사정보 일일 동기화
+
+on:
+  schedule:
+    - cron: '0 21 * * *'   # 매일 KST 06:00 (UTC 21:00)
+  workflow_dispatch:
+    inputs:
+      eventStartDate:
+        description: '행사 시작일 (YYYYMMDD, 기본: 7일 전)'
+        required: false
+      eventEndDate:
+        description: '행사 종료일 (YYYYMMDD, 기본: 3개월 후)'
+        required: false
+
+jobs:
+  festival:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync
+      - name: Step 5 실행
+        env:
+          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          CMD="uv run python main.py --step 5"
+          if [ -n "${{ github.event.inputs.eventStartDate }}" ]; then
+            CMD="$CMD --eventStartDate ${{ github.event.inputs.eventStartDate }}"
+          fi
+          if [ -n "${{ github.event.inputs.eventEndDate }}" ]; then
+            CMD="$CMD --eventEndDate ${{ github.event.inputs.eventEndDate }}"
+          fi
+          eval $CMD
