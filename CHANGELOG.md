@@ -2,6 +2,23 @@
 
 ## [Unreleased] — 2026-03-14
 
+### 28. categories.json 리포지토리 포함 및 워크플로우 정리
+
+카테고리 데이터(~52KB)는 거의 변경되지 않으므로 리포지토리에 직접 포함하여, GitHub Actions 환경에서 API 호출 없이 `build_category_map()`이 정상 동작하도록 변경.
+
+#### 수정 파일
+
+- **`.gitignore`** — `!output/categories.json` 예외 추가 (git 추적 대상에 포함)
+- **`.github/workflows/festival-daily.yml`** — PR #15에서 추가한 `카테고리 데이터 수신` 단계 제거 (checkout 시 파일이 이미 존재)
+- **`output/categories.json`** — `git add -f`로 추적에 추가
+
+#### 영향
+
+- Step 4(sync-daily), Step 5(festival-daily) 모두 checkout만으로 `output/categories.json` 사용 가능
+- `output/` 내 다른 파일들은 여전히 `.gitignore`로 무시
+
+---
+
 ### 27. festival-daily 워크플로우 카테고리 데이터 선행 수신 추가
 
 Step 5 실행 시 `build_category_map()`이 `output/categories.json`을 필요로 하지만, GitHub Actions 환경에는 이 파일이 존재하지 않아 `FileNotFoundError` 발생. Step 5 실행 전에 `--fetch category_code`로 카테고리 데이터를 먼저 수신하도록 추가.
