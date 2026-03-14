@@ -1,5 +1,39 @@
 # Changelog
 
+## [Unreleased] — 2026-03-12
+
+### 17. Step 3 최대 POI 수 1000 → 5000 확대
+
+각 언어당 기본 최대 POI 수를 1000건에서 5000건으로 변경.
+
+#### 수정 파일
+
+- **`src/config.py`**
+  - `DETAIL_UPDATE_MAX_POIS` 값을 `1000` → `5000`으로 변경
+
+---
+
+## [Unreleased] — 2026-03-08
+
+### 16. Step 3 POI 상세 업데이트 중복 수신 버그 수정
+
+`--step 3`에서 `--force` 없이도 이미 처리한 POI를 매번 다시 API에서 받아오는 버그 수정.
+
+#### 원인
+
+- `detailImageUpdated` 플래그가 이미지가 있는 POI에서만 설정됨 → 이미지 없는 POI는 영원히 미완료
+- `detailPetUpdated` 플래그가 pet 정보가 있는 POI에서만 설정됨 → pet 정보 없는 kr POI는 영원히 미완료
+
+#### 수정 파일
+
+- **`src/transformers/pois_detail.py`**
+  - `detailImageUpdated = True`를 `if image_items:` 블록 밖으로 이동 — API 호출 완료 시 항상 설정
+- **`src/fetchers/detail_update.py`**
+  - `merge_detail_to_poi` 호출 후 kr에서 `detailPetUpdated`가 없으면 `True`로 설정
+  - 기존 데이터 백필: `detailUpdatedAt`이 있지만 플래그가 누락된 항목에 자동 보정
+
+---
+
 ## [Unreleased] — 2026-03-07
 
 ### 15. regions collection MongoDB 저장 구현

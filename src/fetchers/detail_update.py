@@ -234,6 +234,15 @@ async def fetch_detail_update(
                 continue
 
             existing_details = _load_details(lang)
+
+            # 기존 데이터 백필: detailUpdatedAt이 있지만 플래그가 누락된 항목 보정
+            for d in existing_details:
+                if d.get("detailUpdatedAt"):
+                    if "detailImageUpdated" not in d:
+                        d["detailImageUpdated"] = True
+                    if lang == "kr" and "detailPetUpdated" not in d:
+                        d["detailPetUpdated"] = True
+
             # 기존 업데이트 결과를 딕셔너리로 변환 (빠른 조회용)
             details_map = {d["id"]: d for d in existing_details}
 
@@ -285,6 +294,9 @@ async def fetch_detail_update(
                 updated_poi = merge_detail_to_poi(
                     base_poi, common, intro_items, info_items, image_items, pet_item
                 )
+                # kr에서 pet API를 호출했지만 결과가 없는 경우에도 완료 플래그 설정
+                if lang == "kr" and "detailPetUpdated" not in updated_poi:
+                    updated_poi["detailPetUpdated"] = True
                 details_map[updated_poi["id"]] = updated_poi
                 newly_updated.append(updated_poi)
                 success_count += 1
