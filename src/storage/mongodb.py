@@ -248,6 +248,44 @@ def save_sync_summary_to_mongodb(
         client.close()
 
 
+def delete_old_sync_summaries(db_name: str = "korea_tourism", days: int = 4) -> int:
+    """updated_content 컬렉션에서 오래된 동기화 요약을 삭제한다.
+
+    syncDate 기준으로 days일 이전 데이터를 삭제한다.
+    syncDate는 ISO 문자열 형식이므로 문자열 비교로 처리한다.
+
+    Args:
+        db_name: MongoDB 데이터베이스 이름
+        days: 삭제 기준 일수 (기본값: 4일)
+
+    Returns:
+        삭제된 문서 수
+    """
+    from datetime import datetime, timedelta
+
+    cutoff = (datetime.now() - timedelta(days=days)).isoformat(timespec="seconds")
+
+    client = _get_client()
+    db = client[db_name]
+
+    try:
+        collection = db["updated_content"]
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                result = collection.delete_many({"syncDate": {"$lt": cutoff}})
+                return result.deleted_count
+            except AutoReconnect:
+                if attempt == MAX_RETRIES:
+                    raise
+                wait = BATCH_DELAY * attempt * 2
+                print(f"    연결 끊김, {wait:.0f}초 후 재시도 ({attempt}/{MAX_RETRIES})...")
+                time.sleep(wait)
+    finally:
+        client.close()
+
+    return 0
+
+
 def delete_event_pois_from_mongodb(
     db_name: str = "korea_tourism",
 ) -> tuple[dict[str, int], list[dict]]:

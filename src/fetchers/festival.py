@@ -22,8 +22,8 @@ async def fetch_festival(
     """행사/축제 정보를 수신하고 변환 + 상세 병합을 수행한다.
 
     Args:
-        event_start_date: 행사 시작일 (YYYYMMDD). 기본값: 7일 전
-        event_end_date: 행사 종료일 (YYYYMMDD). 기본값: 3개월 후
+        event_start_date: 행사 시작일 (YYYYMMDD). 기본값: 2일 전
+        event_end_date: 행사 종료일 (YYYYMMDD). 기본값: 30일 후
 
     Returns:
         (festival_result, summaries)
@@ -33,9 +33,9 @@ async def fetch_festival(
     # 날짜 기본값 계산
     today = date.today()
     if event_start_date is None:
-        event_start_date = (today - timedelta(days=7)).strftime("%Y%m%d")
+        event_start_date = (today - timedelta(days=2)).strftime("%Y%m%d")
     if event_end_date is None:
-        event_end_date = (today + timedelta(days=90)).strftime("%Y%m%d")
+        event_end_date = (today + timedelta(days=30)).strftime("%Y%m%d")
 
     category_map = build_category_map()
     sync_date = datetime.now().isoformat(timespec="seconds")

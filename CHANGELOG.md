@@ -1,5 +1,28 @@
 # Changelog
 
+## [Unreleased] — 2026-03-18
+
+### 29. Step 5 날짜 기본값 변경 및 오래된 동기화 요약 자동 삭제
+
+#### 날짜 기본값 변경
+
+행사정보조회 날짜 범위를 축소하여 관련성 높은 행사만 수신하도록 변경.
+
+- **시작일**: 7일 전 → 2일 전
+- **종료일**: 3개월 후 → 30일 후
+
+#### 오래된 동기화 요약 자동 삭제
+
+Step 5 완료 후 `updated_content` 컬렉션에서 4일 이전 데이터를 자동 삭제하여 이력 데이터 누적을 방지.
+
+#### 수정 파일
+
+- **`src/fetchers/festival.py`** — `event_start_date` 기본값 7일→2일, `event_end_date` 기본값 90일→30일
+- **`main.py`** — help 텍스트 수정, `_delete_old_sync_summaries()` 래퍼 함수 추가, `run_step5()`에서 호출
+- **`src/storage/mongodb.py`** — `delete_old_sync_summaries()` 함수 추가 (syncDate 문자열 비교로 삭제)
+
+---
+
 ## [Unreleased] — 2026-03-14
 
 ### 28. categories.json 리포지토리 포함 및 워크플로우 정리
