@@ -43,13 +43,13 @@ def parse_args() -> argparse.Namespace:
         "--eventStartDate",
         type=str,
         default=None,
-        help="행사 시작일 (YYYYMMDD 형식). --step 5에서 사용. 기본값: 7일 전",
+        help="행사 시작일 (YYYYMMDD 형식). --step 5에서 사용. 기본값: 2일 전",
     )
     parser.add_argument(
         "--eventEndDate",
         type=str,
         default=None,
-        help="행사 종료일 (YYYYMMDD 형식). --step 5에서 사용. 기본값: 3개월 후",
+        help="행사 종료일 (YYYYMMDD 형식). --step 5에서 사용. 기본값: 30일 후",
     )
     parser.add_argument(
         "--force",
@@ -384,6 +384,25 @@ async def run_step4(modifiedtime: str | None = None) -> None:
         _save_sync_summary_to_mongodb(summaries)
 
 
+def _delete_old_sync_summaries() -> None:
+    """updated_content 컬렉션에서 오래된 동기화 요약을 삭제한다."""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    if not os.environ.get("MONGODB_URI"):
+        print("[MongoDB] MONGODB_URI 미설정, 오래된 요약 삭제 건너뜀")
+        return
+
+    from src.storage.mongodb import delete_old_sync_summaries
+
+    print("[MongoDB] 오래된 동기화 요약 삭제 시작 (4일 이전)...")
+    count = delete_old_sync_summaries()
+    print(f"[MongoDB] 오래된 동기화 요약 삭제 완료: {count}건")
+
+
 async def run_fetch_festival(
     event_start_date: str | None = None, event_end_date: str | None = None
 ) -> tuple[dict, list]:
@@ -434,6 +453,9 @@ async def run_step5(
     # 3. 감사 요약 저장
     if summaries:
         _save_sync_summary_to_mongodb(summaries)
+
+    # 4. updated_content 오래된 데이터 정리 (4일 이전)
+    _delete_old_sync_summaries()
 
 
 async def run_step3(region: str | None = None, limit: int | None = None, force: bool = False) -> None:
